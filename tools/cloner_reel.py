@@ -15,7 +15,7 @@ Usage :
     python3 tools/cloner_reel.py "<lien ou fichier vidéo>" [--largeur 768] [--langue en] [--refaire]
     python3 tools/cloner_reel.py installer     # crée .reel-cloneur-venv/ avec yt-dlp (une fois)
     python3 tools/cloner_reel.py verifier      # contrôle des outils (smoke test)
-    python3 tools/cloner_reel.py comparer clones/<dossier>   # script.md reprend-il des phrases ?
+    python3 tools/cloner_reel.py comparer clones/<dossier>[/brouillon.md]   # le script reprend-il des phrases ?
 
 Règles : jamais de cookies ni de connexion au compte du client ; si un lien ne se télécharge pas,
 l'outil le dit simplement et propose de glisser le fichier vidéo à la place. Relancer l'outil sur
@@ -696,17 +696,32 @@ def mots(texte: str):
     return re.findall(r"[a-z0-9]+", t)
 
 
-def comparer(dossier_txt: str, taille: int = 6) -> int:
-    """Cherche dans script.md toute suite de `taille` mots (ou plus) reprise du Reel d'origine."""
-    dossier = pathlib.Path(dossier_txt).expanduser()
-    if dossier.is_file():
-        dossier = dossier.parent
-    script_p = dossier / "script.md"
+def comparer(cible_txt: str, taille: int = 6) -> int:
+    """Cherche dans un script (brouillon ou script.md) toute suite de `taille` mots reprise du Reel d'origine.
+
+    Sources : les paroles (transcript.json), la légende, et le script mot pour mot écrit dans analyse.md,
+    traductions comprises : traduire une phrase de l'auteur, c'est encore la copier."""
+    cible = pathlib.Path(cible_txt).expanduser()
+    script_p = cible if cible.is_file() else cible / "script.md"
+    dossier = script_p.parent
     if not script_p.exists():
-        arret(f"Pas de script.md dans {dossier}")
+        arret(f"Je ne trouve pas le script à vérifier : {script_p}")
     transcript = lire_json(dossier / "transcript.json") or {}
     meta = lire_json(dossier / "meta.json") or {}
     sources = {"paroles": transcript.get("texte") or "", "légende": meta.get("legende") or ""}
+    analyse = dossier / "analyse.md"
+    if analyse.exists():
+        texte = analyse.read_text(encoding="utf-8")
+        bloc = re.search(r"\n## 1\.(.*?)(?=\n## 2\.|\Z)", texte, re.S)    # le script mot pour mot (+ traduction)
+        if bloc:
+            # Seulement la colonne « Ce qui est dit » (phrase et traduction), pas les descriptions d'images.
+            lignes = [l.split("|") for l in bloc.group(1).splitlines()
+                      if l.strip().startswith("|") and not set(l.strip()) <= set("|-: ")]
+            if lignes:
+                entete = [c.strip().lower() for c in lignes[0]]
+                col = next((i for i, c in enumerate(entete) if "dit" in c), 2)
+                dits = [l[col] for l in lignes[1:] if len(l) > col]
+                sources["script d'origine et sa traduction (analyse.md)"] = "\n".join(dits)
     script = mots(script_p.read_text(encoding="utf-8"))
     trouvees = []
     for nom, texte in sources.items():
@@ -723,7 +738,7 @@ def comparer(dossier_txt: str, taille: int = 6) -> int:
             else:
                 i += 1
     if not trouvees:
-        dire(f"ok : aucune suite de {taille} mots ou plus reprise des paroles ni de la légende du Reel d'origine.")
+        dire(f"ok : aucune suite de {taille} mots ou plus reprise du Reel d'origine (paroles, traduction, légende).")
         dire("(Le texte à l'écran n'est que dans les images : relis-le toi-même.)")
         return 0
     dire(f"❌ {len(trouvees)} passage(s) repris du Reel d'origine (à réécrire) :")

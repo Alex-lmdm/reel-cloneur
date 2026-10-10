@@ -16,10 +16,13 @@ pourquoi en une ligne (« Pas de CTA : la vidéo s'arrête sur le pic. »). Lang
 
 ## 1. Le script mot pour mot
 
-| Temps | Ce qui est dit | Texte à l'écran | Ce qu'on voit |
-|---|---|---|---|
-| 0:00 | « {phrase verbatim} »{<br>*{traduction}*} | « {texte verbatim} » ou — | {plan, geste, démo} |
-| 0:03 | … | … | … |
+| Temps | Qui | Ce qui est dit | Texte à l'écran | Ce qu'on voit |
+|---|---|---|---|---|
+| 0:00 | {qui parle, ou — s'il est seul} | « {phrase verbatim} »{<br>*{traduction}*} | « {texte verbatim} », « sous-titres de la voix » ou — | {plan, geste, démo} |
+| 0:03 | … | … | … | … |
+
+La colonne « Ce qui est dit » contient seulement la phrase et sa traduction : le contrôle anti-copie
+lit cette colonne.
 
 {Corrections de noms propres : « La transcription a entendu "X", l'écran et la légende disent "Y". »}
 
