@@ -108,6 +108,8 @@ Le montage est presque inexistant : c'est le fond, et la notoriété de l'auteur
 
 ## 3. Mes questions (2 ou 3 au plus)
 
+*Ancienne version du parcours : aujourd'hui, l'analyse se termine par une seule question, « Maintenant, tu veux faire quoi ? », puis les passages à personnaliser (voir [`../instagram-outil-gratuit-meme-outil/parcours.md`](../instagram-outil-gratuit-meme-outil/parcours.md)).*
+
 1. **Le sujet** : on garde la mécanique « le réflexe n°1 à avoir chaque matin », adaptée à ta niche ? · *Par défaut : le réflexe n°1 du matin pour une femme active pressée = un petit-déj avec des protéines, opposé au classique café + tartine qui fait craquer en milieu de matinée.*
 2. **Ce que tu offres à la fin** : l'auteur ne demande rien, il finit sur sa punchline. Toi, tu ajoutes un appel juste après ? · *Par défaut : commente **MENU** pour recevoir tes 5 idées de petits-déj protéinés rapides (à préparer de ton côté).*
 3. **Ton ressort** : ce Reel tient sur un **aveu** (« même moi, je fais encore cette erreur ») et un **exemple client** concret. Tu as les tiens ? · *Par défaut : je laisse deux trous à remplir, [ton aveu] et [ta cliente], je n'invente rien à ta place.*

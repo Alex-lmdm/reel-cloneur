@@ -107,6 +107,8 @@ leçon et sur la notoriété de l'auteur, d'où beaucoup de vues et peu de comme
 
 ## 3. Mes questions (2 ou 3 au plus)
 
+*Ancienne version du parcours : aujourd'hui, l'analyse se termine par une seule question, « Maintenant, tu veux faire quoi ? », puis les passages à personnaliser (voir [`../instagram-outil-gratuit-meme-outil/parcours.md`](../instagram-outil-gratuit-meme-outil/parcours.md)).*
+
 1. **Le sujet et le format.** Ce Reel est un échange entre deux personnes. On garde la même
    mécanique (une cliente expose son blocage, tu poses une question, tu retournes le problème avec
    une image simple), adaptée à ta niche ? · *Par défaut : tu le tournes seule face caméra, tu

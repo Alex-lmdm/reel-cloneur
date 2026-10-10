@@ -93,6 +93,8 @@ d'où presque autant de commentaires que de likes, ce qui pousse la vidéo.
 
 ## 3. Mes questions (2 ou 3 au plus)
 
+*Ancienne version du parcours : aujourd'hui, l'analyse se termine par une seule question, « Maintenant, tu veux faire quoi ? », puis les passages à personnaliser (voir [`../instagram-outil-gratuit-meme-outil/parcours.md`](../instagram-outil-gratuit-meme-outil/parcours.md)).*
+
 1. **Le sujet.** On garde la même recette (un outil gratuit + « connais le vrai nom et tu obtiens
    ce que tu veux »), adaptée à ta niche ? · *Par défaut : l'appli gratuite Open Food Facts, qui
    scanne une étiquette, et la leçon « quand tu connais les vrais noms du sucre sur l'étiquette, tu
