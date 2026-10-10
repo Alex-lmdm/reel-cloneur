@@ -153,10 +153,12 @@ Les trois questions possibles (adapte les mots, garde l'esprit) :
 2. **Ce que tu offres à la fin** (le CTA) : « À la fin, l'auteur demande [son CTA, ou « rien »].
    Toi ? Par défaut : [le CTA par défaut de `brand.config.json`]. » **Ne promets jamais une
    ressource qui n'existe pas.** Une ressource n'est proposée comme acquise que si
-   `brand.config.json` ou ses scripts la mentionnent. Sinon, demande : « Tu as une ressource à
-   envoyer à ceux qui commentent (un guide, une liste, un lien) ? Si non, je finis sur un appel
-   à s'abonner. » Pas de mot-clé par défaut et une ressource confirmée : propose un mot-clé, un
-   seul mot lié au sujet.
+   `brand.config.json` ou ses scripts la mentionnent. Mot-clé configuré mais aucune ressource
+   connue : la réponse par défaut garde le mot-clé avec un trou, « commente **[mot-clé]** pour
+   recevoir **[ce que tu envoies]** », et demande ce qu'il envoie (un « ok » garde ce trou, il ne
+   le supprime pas). Aucun mot-clé configuré : par défaut, un appel à s'abonner.
+   **Sujet qui cite un vrai outil, un vrai produit ou une vraie méthode** : n'affirme sur lui que
+   ce que tu sais avec certitude ou que le client confirme ; sinon, un trou `[à vérifier : …]`.
 3. **Ton ressort** : « Ce Reel tient sur [son ressort : un chiffre, une démo, un aveu, un
    avant/après, l'histoire d'un client]. Tu as l'équivalent ? Par défaut : [ce que tu peux
    proposer] ; sinon je laisse un trou à remplir. »
@@ -181,8 +183,8 @@ et suis-le dans son cas 1 (« avec une vidéo de référence »). Donne-lui :
 - le type de hook parlé et visuel, et le ressort de preuve ;
 - les réponses du client (ou tes réponses par défaut).
 
-Avec ces règles propres au clonage, qui priment sur `reel-script` quand elles diffèrent. Dis-le
-explicitement en appliquant `reel-script` : pour ce script, sa longueur cible (§6, 30 à 45 s, 80 à
+Avec ces règles propres au clonage, qui priment sur `reel-script` quand elles diffèrent. Tiens-en
+compte en appliquant `reel-script` (inutile d'en parler au client) : pour ce script, sa longueur cible (§6, 30 à 45 s, 80 à
 200 mots), sa règle des 3 patterns différents et son conseil d'ajouter un pic ou un aveu sont
 remplacés par les règles ci-dessous.
 

@@ -6,7 +6,7 @@ règles de clonage du skill `reel-cloneur` §4. Ce modèle fixe la forme du fich
 ```markdown
 # Reel Cloneur™ · ton script
 
-**D'après :** {plateforme} · {@compte ou « fichier »} · {durée} s · voir `analyse.md`
+**D'après :** {plateforme} · {@compte ou « fichier »} · {durée} s · l'analyse est dans le même dossier
 **Ton sujet :** {sujet} · **Ton appel à l'action :** {CTA} · **Durée visée :** ~{s} s
 
 > On a repris la mécanique de ce Reel (son accroche, sa structure, son rythme, la place de l'appel à l'action),

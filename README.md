@@ -5,7 +5,8 @@ Extension du système **Monteur IA**, offerte à tous ses clients.
 Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Tu colles son lien, tu dis
 « clone ce Reel ». Ton monteur IA le regarde pour toi, image par image, et te rend :
 
-1. **Le script mot pour mot**, minute par minute, avec le texte affiché à l'écran.
+1. **Le script mot pour mot**, seconde par seconde, avec le texte affiché à l'écran (et traduit
+   s'il est dans une autre langue).
 2. **Pourquoi ça a marché**, en clair : l'accroche dite et l'accroche visuelle, la structure,
    le rythme des coupes, la preuve, l'appel à l'action.
 3. **2 ou 3 questions au plus** (ton sujet, ce que tu offres, ton exemple à toi), avec une réponse
@@ -26,20 +27,26 @@ ordinateur : pas de compte à créer, pas de clé, pas d'abonnement en plus.
 
 Tu colles : `https://www.instagram.com/…/reel/…` et tu dis « clone ce Reel ».
 
-Moins d'une minute plus tard, ton monteur te montre le script d'origine et son analyse :
+Ton monteur télécharge la vidéo, la regarde image par image, puis te montre le script d'origine
+et son analyse. Par exemple, sur un Reel de @lemondedumarketing :
 
-> **Hook parlé** : « Ce site gratuit transforme n'importe quelle IA vidéo en vrai studio de
-> cinéma… » · type *bénéfice immédiat* : gratuit + résultat spectaculaire, nommé tout de suite.
-> **Hook visuel** : un plan de cinéma généré par IA, en plein écran, avant même de voir le visage.
-> **Structure** : promesse (0-7 s) → preuve sociale chiffrée (7-12 s) → ce qu'on y trouve (12-23 s)
-> → « je l'ai testé » avec la démo (23-34 s) → commente un mot pour recevoir le site (34-38 s).
+> **L'accroche dite** : « Ce site gratuit transforme n'importe quelle IA vidéo en vrai studio de
+> cinéma… » C'est un *bénéfice immédiat* : gratuit, et un résultat spectaculaire.
+> **L'accroche visuelle** : une mosaïque de plans de films qui défile au-dessus du visage.
+> **La structure** : la promesse (0-3 s) → le nom du site et le nombre de techniques (3-12 s) → ce
+> qu'on y trouve (12-23 s) → « je l'ai testé », avec la démo (23-29 s) → l'astuce à retenir
+> (29-34 s) → commente un mot pour recevoir le site (34-38 s).
 
-Puis il te demande, par exemple : « Toi, tu offres quoi à la fin ? Par défaut : commente MENU pour
-recevoir ta liste de courses. » Tu dis « ok ». Il t'écrit ton script, et la liste des choix de
-montage.
+Puis il te pose 2 ou 3 questions, avec sa réponse déjà proposée. Par exemple : « Toi, tu offres
+quoi à la fin ? Par défaut : commente MENU pour recevoir ton guide de repas express. Tu l'as déjà,
+ou on le note à créer ? » Tu réponds en une ligne, ou « ok ». Il t'écrit ton script, et la liste
+des choix de montage.
 
-Un exemple complet (analyse + script) fait pendant nos tests est dans le dossier
-[`exemples/`](exemples/).
+Compte environ 6 minutes en tout, du lien collé au script prêt à lire (mesuré sur nos tests :
+une minute pour l'installation la première fois, puis 5 à 6 minutes par Reel).
+
+Trois exemples complets faits pendant nos tests (un Reel Instagram, un TikTok, un YouTube Short)
+sont dans le dossier [`exemples/`](exemples/).
 
 ---
 
@@ -49,7 +56,7 @@ Un exemple complet (analyse + script) fait pendant nos tests est dans le dossier
 - une connexion internet pour télécharger les vidéos ;
 - rien d'autre : l'installation ajoute toute seule le petit outil qui télécharge les vidéos.
 
-## Installation : 2 à 3 minutes
+## Installation : une à deux minutes
 
 Ouvre **Claude Code** (ou **Codex**) **dans ton dossier Monteur IA** et colle :
 
@@ -64,11 +71,12 @@ Une seule phrase :
 
 > **« Clone ce Reel »** + le lien (ou la vidéo glissée dans la conversation).
 
-Tout ce que ton monteur prépare est rangé dans `clones/`, un dossier par Reel cloné :
-`analyse.md` (le script d'origine et son analyse) et `script.md` (ton script à tourner).
+Tout ce que ton monteur prépare est rangé dans le dossier `clones/` de ton dossier Monteur IA, un
+dossier par Reel cloné. Dedans, deux fichiers à ouvrir : `analyse.md` (le script d'origine et
+pourquoi il a marché) et `script.md` (ton script à tourner).
 
-Quand tu as tourné ta version : glisse ta vidéo et dis « on monte celle-ci ». Ton monteur reprend
-les choix de montage du Reel cloné.
+Quand tu as tourné ta version : glisse ta vidéo et dis « on monte celle-ci ». Ton monteur part des
+choix de montage du Reel cloné, en gardant ton style.
 
 ## FAQ
 
@@ -81,7 +89,8 @@ remplir quand il lui manque ton exemple.
 **Il faut que je donne mon compte Instagram ?**
 Non, jamais. Les vidéos publiques se téléchargent sans connexion. Si une vidéo refuse (privée, ou
 Instagram qui bloque ce jour-là), enregistre-la sur ton ordinateur et glisse le fichier dans la
-conversation : le résultat est le même.
+conversation : le résultat est le même. Le plus simple : un enregistrement d'écran de ton
+téléphone pendant que le Reel passe.
 
 **Et si le Reel est en anglais ?**
 Aucun problème : ton monteur le transcrit en anglais, te le traduit, et écrit ton script dans ta

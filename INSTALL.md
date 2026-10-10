@@ -26,7 +26,7 @@ existant. Pas de compte à créer, pas de clé, pas d'abonnement : tout tourne s
 > « Descarga la extensión https://github.com/Alex-lmdm/reel-cloneur y sigue las instrucciones de
 > instalación de su INSTALL.md. Háblame en español. »
 >
-> Il fait tout, en 2 à 3 minutes.
+> Il fait tout, en une à deux minutes.
 
 Sinon, télécharge le ZIP de ce dépôt (bouton vert « Code », puis « Download ZIP »), dézippe-le où
 tu veux, ouvre ton agent **dans ton dossier Monteur IA**, et colle exactement le bloc ci-dessous
@@ -35,6 +35,8 @@ comme premier message (remplace le chemin de la première ligne par l'endroit o�
 ```text
 Tu es mon assistant d'installation pour l'extension « Reel Cloneur™ » de mon Monteur IA.
 Le dossier de l'extension dézippé est ici : ~/Downloads/reel-cloneur-main
+(Si tu viens de la phrase « Télécharge l'extension… », ignore cette ligne : le dossier est celui
+que tu télécharges à l'étape 0.)
 Installe l'extension étape par étape, sans jamais rien casser. Suis ces règles :
 
 0. TÉLÉCHARGEMENT (seulement si tu n'as pas déjà le dossier de l'extension) : dans un dossier
