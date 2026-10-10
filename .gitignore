@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+# Matériel de recherche (dépôts de référence, essais) : jamais publié
+recherche/
+# Médias et analyses locales : jamais publiés (lourds, et contenus de tiers)
+clones/
+.reel-cloneur-venv/
+*.mp4
+*.mov
+*.wav
+*.m4a
+*.webm
+exemples/**/frames/
