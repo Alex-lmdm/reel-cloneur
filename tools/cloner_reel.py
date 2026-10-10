@@ -416,9 +416,11 @@ def meta_depuis_info(info: dict, url: str) -> dict:
     compte = compte or info.get("uploader_id") or info.get("channel_id") or info.get("uploader")
     if plateforme == "youtube":
         compte = (info.get("uploader_id") or info.get("channel") or "").lstrip("@") or compte
-    musique = None
+    # La plateforme déclare parfois un son (« son original »…) ; qu'on l'entende ou non n'est pas
+    # détectable ici : l'IA ne voit que les images.
+    musique = "non détectable"
     if info.get("track") or info.get("artist"):
-        musique = " · ".join(x for x in (info.get("track"), info.get("artist")) if x)
+        musique = "déclarée par la plateforme : " + " · ".join(x for x in (info.get("track"), info.get("artist")) if x)
     return {
         "source": url,
         "plateforme": plateforme,
@@ -502,7 +504,28 @@ def secondes(horodatage: str) -> float:
     return round(int(h) * 3600 + int(m) * 60 + float(s), 2)
 
 
-def transcrire(dossier: pathlib.Path, langue_forcee):
+def en_phrases(morceaux, duree: float):
+    """Regroupe les morceaux Whisper (60 caractères) en phrases, d'après la ponctuation.
+    Une phrase sans ponctuation est coupée à 12 s ; aucune borne ne dépasse la durée de la vidéo."""
+    phrases, courante = [], None
+    for m in morceaux:
+        if courante is None:
+            courante = {"debut": m["debut"], "fin": m["fin"], "qui": "", "texte": m["texte"]}
+        else:
+            courante["fin"] = m["fin"]
+            courante["texte"] += " " + m["texte"]
+        if re.search(r"[.!?…]['\"»”)]*$", courante["texte"]) or courante["fin"] - courante["debut"] >= 12:
+            phrases.append(courante)
+            courante = None
+    if courante:
+        phrases.append(courante)
+    for ph in phrases:
+        ph["fin"] = round(min(ph["fin"], duree), 2)
+        ph["debut"] = round(min(ph["debut"], ph["fin"]), 2)
+    return phrases
+
+
+def transcrire(dossier: pathlib.Path, langue_forcee, duree: float):
     w = binaire("whisperCli", "whisper-cli")
     m = modele_whisper()
     if not w or not m:
@@ -526,44 +549,72 @@ def transcrire(dossier: pathlib.Path, langue_forcee):
     sortie.with_suffix(".json").unlink(missing_ok=True)
     if r.returncode != 0 or brut is None:
         arret("La transcription a échoué :\n" + (r.stderr or "")[-500:])
-    segments = []
+    morceaux = []
     for s in brut.get("transcription") or []:
         texte = (s.get("text") or "").strip()
         if not texte or re.fullmatch(r"[\[(].*[\])]|♪+", texte):
             continue
-        segments.append({"debut": secondes(s["timestamps"]["from"]), "fin": secondes(s["timestamps"]["to"]),
+        debut_m = secondes(s["timestamps"]["from"])
+        if debut_m >= duree:
+            continue
+        morceaux.append({"debut": debut_m, "fin": min(secondes(s["timestamps"]["to"]), round(duree, 2)),
                          "texte": texte})
+    phrases = en_phrases(morceaux, duree)
     transcript = {
         "langue": langue,
         "langueDetectee": proba is not None,
         "probabilite": proba,
         "modele": pathlib.Path(m).name,
-        "segments": segments,
-        "texte": " ".join(s["texte"] for s in segments),
+        "phrases": phrases,
+        "texte": " ".join(p["texte"] for p in phrases),
+        "morceaux": morceaux,
         "_note": "Transcription automatique : peut contenir des fautes sur les noms propres. Le texte "
-                 "à l'écran (frames/) fait foi quand il dit autre chose.",
+                 "à l'écran (frames/) fait foi quand il dit autre chose. « qui » est vide : à remplir par "
+                 "l'IA (d'après les sous-titres, le cadre ou la voix) quand plusieurs personnes parlent.",
     }
     ecrire_json(dossier / "transcript.json", transcript)
     return transcript
 
 
 # ------------------------------------------------------------------ coupes et images
+def debut_visible(ffmpeg: str, video: pathlib.Path) -> float:
+    """Le premier instant où l'image n'est plus noire (beaucoup de Shorts démarrent sur une image noire)."""
+    r = lancer([ffmpeg, "-hide_banner", "-nostats", "-t", "3", "-i", video, "-an", "-vf",
+                "signalstats,metadata=print:key=lavfi.signalstats.YAVG", "-f", "null", "-"], timeout=300)
+    temps = [float(t) for t in re.findall(r"pts_time:([\d.]+)", r.stderr)]
+    lum = [float(y) for y in re.findall(r"YAVG=([\d.]+)", r.stderr)]
+    for t, y in zip(temps, lum):
+        if y > 24:                      # noir vidéo ≈ 16 ; au-dessus de 24, il y a quelque chose à voir
+            return round(t, 2)
+    return 0.0
+
+
 def detecter_coupes(ffmpeg: str, video: pathlib.Path, duree: float):
-    r = lancer([ffmpeg, "-hide_banner", "-nostats", "-i", video, "-an", "-filter:v",
-                f"select='gt(scene,{SCENE_SEUIL})',showinfo", "-f", "null", "-"], timeout=1800)
+    """Changements d'image francs, mesurés deux fois : sur l'image entière, et sur sa zone centrale.
+
+    La zone centrale rattrape les vidéos encadrées (format podcast : bande vidéo au milieu, fond noir et
+    titre fixe autour) où le cadre immobile écrase le score de l'image entière sous le seuil."""
+    trouves = []
+    for zone in ("", f"crop=iw*0.8:ih*0.5:iw*0.1:ih*0.25,"):
+        r = lancer([ffmpeg, "-hide_banner", "-nostats", "-i", video, "-an", "-filter:v",
+                    f"{zone}select='gt(scene,{SCENE_SEUIL})',showinfo", "-f", "null", "-"], timeout=1800)
+        trouves += [float(t) for t in re.findall(r"pts_time:([\d.]+)", r.stderr)]
+    visible = debut_visible(ffmpeg, video)
+    if visible > 0:
+        trouves.append(visible)
     coupes = []
-    for t in re.findall(r"pts_time:([\d.]+)", r.stderr):
-        t = float(t)
-        if 0.15 < t < duree - 0.1 and (not coupes or t - coupes[-1] >= 0.25):
+    for t in sorted(trouves):
+        if 0.0 < t < duree - 0.1 and (not coupes or t - coupes[-1] >= 0.25):
             coupes.append(round(t, 2))
-    return coupes
+    return coupes, visible
 
 
-def choisir_images(duree: float, coupes):
-    """Une image juste après chaque coupe, 2/s sur 0-5 s, 1/s ensuite, la dernière ; 60 au plus."""
+def choisir_images(duree: float, coupes, visible: float = 0.0):
+    """Une image juste après chaque coupe, 2/s sur 0-5 s, 1/s ensuite, la dernière ; 60 au plus.
+    Une ouverture noire n'a pas d'image à elle : la première image est la première qui montre quelque chose."""
     fin = max(0.0, duree - 0.1)
     cand = [(min(c + 0.12, fin), "coupe") for c in coupes]
-    t = 0.0
+    t = round(visible + 0.12, 2) if visible > 0 else 0.0
     while t < min(5.0, duree):
         cand.append((t, "debut"))
         t += 0.5
@@ -609,12 +660,12 @@ def extraire_images(ffmpeg: str, dossier: pathlib.Path, choix, largeur: int):
 
 def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict) -> dict:
     duree = media["duree"]
-    coupes = detecter_coupes(ffmpeg, dossier / "media.mp4", duree)
+    coupes, visible = detecter_coupes(ffmpeg, dossier / "media.mp4", duree)
     bornes = [0.0] + coupes + [duree]
     plans = [{"n": i + 1, "debut": bornes[i], "fin": bornes[i + 1], "duree": round(bornes[i + 1] - bornes[i], 2)}
              for i in range(len(bornes) - 1)]
     moyenne = round(duree / len(plans), 2) if plans else duree
-    images = extraire_images(ffmpeg, dossier, choisir_images(duree, coupes), largeur)
+    images = extraire_images(ffmpeg, dossier, choisir_images(duree, coupes, visible), largeur)
     rythme = ("très rapide" if moyenne < 1.5 else "rapide" if moyenne < 3 else "posé" if moyenne < 6
               else "plan quasi unique")
     shots = {
@@ -625,13 +676,15 @@ def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict
         "coupes0a3s": sum(1 for c in coupes if c <= 3),
         "coupes0a10s": sum(1 for c in coupes if c <= 10),
         "dureeMoyennePlan": moyenne,
+        "ouvertureNoireJusqua": visible or None,
         "planLePlusLong": max((p["duree"] for p in plans), default=duree),
         "rythme": rythme,
         "plans": plans,
         "largeurImages": largeur,
         "images": images,
-        "_note": "Coupes détectées par changement d'image (seuil 0.3) : un zoom brusque ou un texte plein écran "
-                 "compte comme une coupe, un fondu lent peut être manqué. Vérifie sur les images.",
+        "_note": "Coupes franches détectées par changement d'image (seuil 0.3, sur l'image entière et sur sa "
+                 "zone centrale) : un zoom brusque ou un texte plein écran compte comme une coupe, un fondu lent "
+                 "ou une animation dans un plan n'en est pas une. Vérifie sur les images.",
     }
     ecrire_json(dossier / "shots.json", shots)
     return shots
@@ -682,6 +735,7 @@ def comparer(dossier_txt: str, taille: int = 6) -> int:
 # ------------------------------------------------------------------ le clonage
 def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     debut = time.time()
+    telecharge = False
     ffmpeg = binaire("ffmpegPath", "ffmpeg")
     if not ffmpeg:
         arret("ffmpeg est introuvable : c'est un outil de Monteur IA, relance son installation.")
@@ -702,9 +756,10 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
             dossier.mkdir(parents=True, exist_ok=True)
             dire(f"• fichier : {chemin.name}")
             preparer_fichier(chemin, dossier, ffmpeg)
+            telecharge = True
             meta = {"source": str(chemin), "plateforme": "fichier", "id": None, "lien": None,
                     "auteur": None, "compte": None, "titre": chemin.stem, "date": None, "legende": None,
-                    "likes": None, "commentaires": None, "vues": None, "partages": None, "musique": None,
+                    "likes": None, "commentaires": None, "vues": None, "partages": None, "musique": "non détectable",
                     "hashtags": []}
             ecrire_json(dossier / "meta.json", meta)
         else:
@@ -719,6 +774,7 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
             dire(f"• téléchargement : {url}")
             t0 = time.time()
             tmp, info = telecharger(url, ffmpeg)
+            telecharge = True
             meta = meta_depuis_info(info, url)
             if dossier is None:
                 nom = "-".join(x for x in (aujourdhui, meta["plateforme"], slugifier(meta["compte"] or "", 30),
@@ -737,24 +793,28 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     if not media["duree"]:
         arret("Cette vidéo semble vide ou abîmée (durée nulle).")
 
+    refait = False
     t0 = time.time()
     if media["audio"]:
         if refaire or not (dossier / "audio.wav").exists():
             extraire_audio(ffmpeg, dossier)
         transcript = lire_json(dossier / "transcript.json")
-        if refaire or langue or transcript is None:
+        if refaire or langue or transcript is None or "phrases" not in transcript:
             dire("• transcription…")
-            transcript = transcrire(dossier, langue)
+            refait = True
+            transcript = transcrire(dossier, langue, media["duree"])
             dire(f"  ok ({time.time() - t0:.1f} s, langue : {transcript['langue']})")
     else:
-        transcript = {"langue": None, "segments": [], "texte": "",
+        transcript = {"langue": None, "phrases": [], "morceaux": [], "texte": "",
                       "_note": "Vidéo sans piste audio : tout passe par l'image et le texte à l'écran."}
         ecrire_json(dossier / "transcript.json", transcript)
 
     t0 = time.time()
     shots = lire_json(dossier / "shots.json")
-    if refaire or shots is None or shots.get("largeurImages") != largeur or not (dossier / "frames").exists():
+    if (refaire or shots is None or shots.get("largeurImages") != largeur or not (dossier / "frames").exists()
+            or "ouvertureNoireJusqua" not in shots):
         dire("• coupes et images…")
+        refait = True
         shots = analyser_plans(dossier, ffmpeg, largeur, media)
         dire(f"  ok ({time.time() - t0:.1f} s)")
 
@@ -771,17 +831,18 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     dire(f"   {meta.get('plateforme')} · {meta.get('compte') or meta.get('auteur') or '?'} · publié le "
          f"{meta.get('date') or '?'} · {media['duree']:.1f} s")
     dire(f"   vues {n(meta.get('vues'))} · likes {n(meta.get('likes'))} · commentaires {n(meta.get('commentaires'))}")
-    dire(f"   {len(transcript.get('segments') or [])} phrases transcrites (langue : {transcript.get('langue')})")
+    dire(f"   {len(transcript.get('phrases') or [])} phrases transcrites (langue : {transcript.get('langue')})")
     dire(f"   {shots['nbCoupes']} coupes (dont {shots['coupes0a3s']} sur 0-3 s, {shots['coupes0a10s']} sur 0-10 s), "
          f"plan moyen {shots['dureeMoyennePlan']} s, rythme {shots['rythme']} (coupes franches seulement : "
          "les animations et zooms se voient sur les images)")
     dire(f"   {len(shots['images'])} images à lire dans frames/ ({largeur} px)")
-    premiere = (transcript.get("segments") or [{}])[0].get("texte") if transcript.get("segments") else None
+    premiere = transcript["phrases"][0]["texte"] if transcript.get("phrases") else None
     if premiere:
         dire(f"   première phrase : « {premiere[:140]} »")
-    duree_totale = time.time() - debut
-    dire(f"   durée totale : {duree_totale:.1f} s" + (" (tout était déjà prêt, rien n'a été refait)"
-                                                    if duree_totale < 1 else ""))
+    if refait or telecharge:
+        dire(f"   préparé en {time.time() - debut:.0f} s")
+    else:
+        dire("   dossier déjà prêt, rien à refaire")
     dire("")
     dire("Étape suivante (pour l'IA) : lis TOUTES les images de frames/ et transcript.json, puis suis le skill reel-cloneur.")
 
