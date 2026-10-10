@@ -7,11 +7,15 @@ Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Tu col
 
 1. **Le script mot pour mot**, seconde par seconde, avec le texte affiché à l'écran (et traduit
    s'il est dans une autre langue).
-2. **Pourquoi ça a marché**, en clair : l'accroche dite et l'accroche visuelle, la structure,
+2. **Pourquoi ça a marché**, en clair : l'accroche dite et l'accroche visuelle, le déroulé,
    le rythme des coupes, la preuve, l'appel à l'action.
-3. **2 ou 3 questions au plus** (ton sujet, ce que tu offres, ton exemple à toi), avec une réponse
-   déjà proposée : tu peux répondre « ok ».
-4. **Ton script à tourner** : 3 accroches au choix sur la même mécanique, le corps calqué sur la
+3. **Une seule question : « Maintenant, tu veux faire quoi ? »** Refaire la même chose dans ta
+   langue (présenter le même outil, le même site, le même conseil à ton public), la même mécanique
+   sur ton sujet à toi, ou autre chose. Tu réponds en une ligne.
+4. **Ce qui est à personnaliser** pour que ce soit ton Reel et pas une copie : son test perso, ses
+   chiffres, son exemple, son mot-clé. Pour chacun, il te propose quoi mettre à la place ; tu
+   réponds en une fois, ou « ok ».
+5. **Ton script à tourner** : 3 accroches au choix sur la même mécanique, le corps calqué sur la
    même structure, ton appel à l'action, dans ta voix, prêt à lire au prompteur. Plus la liste des
    choix de montage à reproduire, que ton monteur appliquera.
 
@@ -19,7 +23,8 @@ Marche avec les **Reels Instagram**, les **TikTok** et les **YouTube Shorts**. T
 ordinateur : pas de compte à créer, pas de clé, pas d'abonnement en plus.
 
 > **La règle : on reprend la mécanique, jamais les phrases.** Une structure qui marche n'appartient
-> à personne ; les mots, les chiffres et les histoires d'un créateur, si. Ton script est le tien.
+> à personne, un outil gratuit non plus : tu peux présenter le même. Les mots, les chiffres et les
+> histoires d'un créateur, eux, sont à lui. Ton script est le tien.
 
 ---
 
@@ -37,15 +42,17 @@ et son analyse. Par exemple, sur un Reel de @lemondedumarketing :
 > qu'on y trouve (12-23 s) → « je l'ai testé », avec la démo (23-29 s) → l'astuce à retenir
 > (29-34 s) → commente un mot pour recevoir le site (34-38 s).
 
-Puis il te pose 2 ou 3 questions, avec sa réponse déjà proposée. Par exemple : « Toi, tu offres
-quoi à la fin ? Par défaut : commente MENU pour recevoir ton guide de repas express. Tu l'as déjà,
-ou on le note à créer ? » Tu réponds en une ligne, ou « ok ». Il t'écrit ton script, et la liste
-des choix de montage.
+Puis il te demande ce que tu veux en faire. Par exemple, sur un Reel américain qui présente un
+outil gratuit : « a) la même chose en français, en présentant le même outil ; b) la même mécanique
+sur ton sujet ; c) autre chose. » Tu réponds « a, avec mon mot-clé VIRAL ». Il te montre alors ce
+qui appartient à l'auteur et ce qu'il propose à la place : « Là, il raconte son test sur 7 accroches.
+Tu as un essai à toi, ou je tourne la phrase comme une promesse, sans chiffre ? » Tu réponds « ok »,
+il t'écrit ton script et la liste des choix de montage.
 
 Compte environ 6 minutes en tout, du lien collé au script prêt à lire (mesuré sur nos tests :
 une minute pour l'installation la première fois, puis 5 à 6 minutes par Reel).
 
-Trois exemples complets faits pendant nos tests (un Reel Instagram, un TikTok, un YouTube Short)
+Quatre exemples complets faits pendant nos tests (deux Reels Instagram, un TikTok, un YouTube Short)
 sont dans le dossier [`exemples/`](exemples/).
 
 ---
@@ -82,9 +89,9 @@ choix de montage du Reel cloné, en gardant ton style.
 
 **C'est du plagiat ?**
 Non, et c'est fait exprès. Le Reel Cloneur™ reprend ce qui ne s'invente pas deux fois : une forme
-d'accroche, un ordre, un rythme, la place de l'appel à l'action. Il ne reprend jamais les phrases,
-les chiffres ni les histoires de l'auteur : il les remplace par les tiens, et laisse un trou à
-remplir quand il lui manque ton exemple.
+d'accroche, un ordre, un rythme, la place de l'appel à l'action, et l'outil présenté si tu veux le
+présenter toi aussi. Il ne reprend jamais les phrases, les chiffres ni les histoires de l'auteur :
+il te propose quoi mettre à la place, et n'invente jamais un chiffre ou un test pour toi.
 
 **Il faut que je donne mon compte Instagram ?**
 Non, jamais. Les vidéos publiques se téléchargent sans connexion. Si une vidéo refuse (privée, ou

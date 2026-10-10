@@ -8,7 +8,8 @@ L'outil fait toute la partie mécanique ; l'IA fait ensuite la lecture et l'écr
     audio.wav        l'audio en 16 kHz mono (pour Whisper)
     transcript.json  la transcription horodatée (langue détectée : le Reel peut être en anglais)
     shots.json       les coupes, la durée des plans, le rythme, la liste des images extraites
-    frames/          les images à lire (une par coupe, une par seconde, deux par seconde sur 0-5 s)
+    frames/          les images (une par coupe, une par seconde, deux par seconde sur les 5 premières s)
+    planches/        planches-contact de 6 images (au-delà des 5 premières s), heure écrite sur chaque image
     meta.json        plateforme, auteur, date, légende, likes, commentaires, vues si connues
 
 Usage :
@@ -37,6 +38,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+import urllib.parse
 
 # Windows : une sortie lue par l'agent (redirigée) est en cp1252, et un « ✅ » y fait planter l'outil.
 for _flux in (sys.stdout, sys.stderr):
@@ -46,6 +48,7 @@ for _flux in (sys.stdout, sys.stderr):
         pass
 
 WIN = os.name == "nt"
+PY = "python" if WIN else "python3"  # la commande à redonner au client dans les messages
 OUTILS = pathlib.Path(__file__).resolve().parent
 
 
@@ -67,6 +70,9 @@ MAJ_INTERVALLE = 12 * 3600           # yt-dlp vérifié au plus toutes les 12 h 
 
 SCENE_SEUIL = 0.3
 PLAFOND_IMAGES = 60
+HOOK_S = 5.0                         # les 5 premières secondes visibles : lues image par image
+PLANCHE_COLONNES, PLANCHE_LIGNES = 3, 2
+TUILE_LARGEUR = 320                  # 3 × 320 px : planche d'environ 1 000 × 1 150 px, texte encore lisible
 ECART_MIN = 0.35                     # deux images plus proches que ça : on n'en garde qu'une
 FICHIER_VIDEO = (".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi", ".3gp")
 
@@ -221,8 +227,9 @@ def mettre_a_jour_ytdlp(forcer: bool = False) -> None:
     if not forcer and MAJ_STAMP.exists() and time.time() - MAJ_STAMP.stat().st_mtime < MAJ_INTERVALLE:
         return
     try:
+        # Hors ligne, pip réessaie longtemps par défaut : on coupe court (10 s, un seul nouvel essai).
         r = lancer([py, "-m", "pip", "install", "--upgrade", "--quiet", "--disable-pip-version-check",
-                    YTDLP_PAQUET], timeout=180)
+                    "--timeout", "10", "--retries", "1", YTDLP_PAQUET], timeout=120)
         if r.returncode == 0:
             MAJ_STAMP.write_text(datetime.datetime.now().isoformat())
     except (OSError, subprocess.SubprocessError):
@@ -242,7 +249,7 @@ def installer() -> None:
                        else "winget install -e --id Python.Python.3.12" if WIN
                        else "sudo apt install python3.12-venv")
             arret("Il faut un Python 3.10 ou plus récent pour le téléchargeur (celui de ton ordinateur est "
-                  f"plus ancien). Installe-le avec : {conseil}\npuis relance : python3 tools/cloner_reel.py "
+                  f"plus ancien). Installe-le avec : {conseil}\npuis relance : {PY} tools/cloner_reel.py "
                   "installer", 3)
         dire(f"• Python utilisé : {base}")
         r = lancer([base, "-m", "venv", str(VENV)], timeout=300)
@@ -279,7 +286,7 @@ def verifier() -> int:
     ligne(bool(m), "modèle Whisper", m or "introuvable (env.whisperModel de brand.config.json)")
     y = ytdlp_exe()
     v = version_ytdlp(y) if y else ""
-    ligne(bool(y) and assez_recent(v), "yt-dlp", f"{v} ({y})" if y else "absent : python3 tools/cloner_reel.py installer")
+    ligne(bool(y) and assez_recent(v), "yt-dlp", f"{v} ({y})" if y else f"absent : {PY} tools/cloner_reel.py installer")
     if venv_bin("python").exists():
         curl = lancer([venv_bin("python"), "-c", "import curl_cffi"], timeout=60).returncode == 0
         ligne(curl, "curl_cffi", "ok" if curl else "absent : relance l'installation")
@@ -360,7 +367,7 @@ def telecharger(url: str, ffmpeg: str):
     """Télécharge le lien dans clones/_telechargement/ ; renvoie (dossier temporaire, info yt-dlp)."""
     y = ytdlp_exe()
     if not y:
-        arret("Le téléchargeur n'est pas installé. Lance d'abord : python3 tools/cloner_reel.py installer")
+        arret(f"Le téléchargeur n'est pas installé. Lance d'abord : {PY} tools/cloner_reel.py installer")
     mettre_a_jour_ytdlp()
     tmp = CLONES / "_telechargement"
     shutil.rmtree(tmp, ignore_errors=True)
@@ -610,15 +617,16 @@ def detecter_coupes(ffmpeg: str, video: pathlib.Path, duree: float):
 
 
 def choisir_images(duree: float, coupes, visible: float = 0.0):
-    """Une image juste après chaque coupe, 2/s sur 0-5 s, 1/s ensuite, la dernière ; 60 au plus.
+    """Une image juste après chaque coupe, 2/s sur les 5 premières s visibles, 1/s ensuite, la dernière ; 60 au plus.
     Une ouverture noire n'a pas d'image à elle : la première image est la première qui montre quelque chose."""
     fin = max(0.0, duree - 0.1)
     cand = [(min(c + 0.12, fin), "coupe") for c in coupes]
     t = round(visible + 0.12, 2) if visible > 0 else 0.0
-    while t < min(5.0, duree):
+    fin_hook = visible + HOOK_S
+    while t < min(fin_hook, duree):
         cand.append((t, "debut"))
         t += 0.5
-    t = 5.0
+    t = fin_hook
     while t < duree - 0.2:
         cand.append((t, "seconde"))
         t += 1.0
@@ -658,6 +666,85 @@ def extraire_images(ffmpeg: str, dossier: pathlib.Path, choix, largeur: int):
     return liste
 
 
+# Police 5 × 7 pour écrire l'heure sur chaque image d'une planche. Le ffmpeg de Homebrew n'a pas
+# `drawtext` (pas de freetype) : on dessine l'étiquette nous-mêmes, en image PPM, et ffmpeg la colle.
+POLICE = {
+    "0": "01110 10001 10011 10101 11001 10001 01110", "1": "00100 01100 00100 00100 00100 00100 01110",
+    "2": "01110 10001 00001 00010 00100 01000 11111", "3": "11111 00010 00100 00010 00001 10001 01110",
+    "4": "00010 00110 01010 10010 11111 00010 00010", "5": "11111 10000 11110 00001 00001 10001 01110",
+    "6": "00110 01000 10000 11110 10001 10001 01110", "7": "11111 00001 00010 00100 01000 01000 01000",
+    "8": "01110 10001 10001 01110 10001 10001 01110", "9": "01110 10001 10001 01111 00001 00010 01100",
+    ":": "00000 01100 01100 00000 01100 01100 00000", ".": "00000 00000 00000 00000 00000 01100 01100",
+}
+
+
+def etiquette(texte: str, chemin: pathlib.Path, fond=(255, 255, 255), echelle: int = 3) -> None:
+    """Écrit `texte` (chiffres, « : », « . ») en noir sur `fond`, cadre noir, dans une image PPM."""
+    marge, bord = 2 * echelle, 2
+    l = marge * 2 + len(texte) * 6 * echelle - echelle
+    h = marge * 2 + 7 * echelle
+    px = [[fond] * l for _ in range(h)]
+    for i, c in enumerate(texte):
+        for y, rang in enumerate(POLICE[c].split()):
+            for x, bit in enumerate(rang):
+                if bit == "1":
+                    for dy in range(echelle):
+                        for dx in range(echelle):
+                            px[marge + y * echelle + dy][marge + (i * 6 + x) * echelle + dx] = (0, 0, 0)
+    for y in range(h):
+        for x in range(l):
+            if x < bord or y < bord or x >= l - bord or y >= h - bord:
+                px[y][x] = (0, 0, 0)
+    chemin.write_bytes(f"P6 {l} {h} 255\n".encode() + bytes(v for rang in px for p in rang for v in p))
+
+
+def faire_planches(ffmpeg: str, dossier: pathlib.Path, images, fin_hook: float, media: dict):
+    """Les images au-delà des 5 premières secondes, par planches de 6 (3 × 2), dans l'ordre de lecture.
+
+    Chaque image porte son heure en haut à gauche (étiquette jaune : image prise juste après une coupe).
+    L'IA lit une planche au lieu de six images : même contenu, trois fois moins d'allers-retours."""
+    dossier_p = dossier / "planches"
+    shutil.rmtree(dossier_p, ignore_errors=True)
+    reste = [im for im in images if im["t"] >= fin_hook]
+    if not reste:
+        return []
+    dossier_p.mkdir()
+    lv, hv = media.get("largeur") or 9, media.get("hauteur") or 16
+    th = max(2, int(round(TUILE_LARGEUR * hv / lv / 2)) * 2)
+    cw, ch = TUILE_LARGEUR + 8, th + 8                    # une case = l'image + 4 px de blanc autour
+    par_planche = PLANCHE_COLONNES * PLANCHE_LIGNES
+    nb = -(-len(reste) // par_planche)                     # planches équilibrées : 32 images → 6,6,5,5,5,5
+    bornes = [round(i * len(reste) / nb) for i in range(nb + 1)]
+    planches = []
+    for k in range(nb):
+        groupe = reste[bornes[k]:bornes[k + 1]]
+        entrees, filtres, sorties = [], [], []
+        n = len(groupe)
+        for i, im in enumerate(groupe):
+            lab = dossier_p / f"_etiquette{i}.ppm"
+            etiquette(mmss(im["t"]), lab, (255, 214, 0) if im["raison"] == "coupe" else (255, 255, 255))
+            entrees += ["-i", dossier / im["fichier"], "-i", lab]
+            filtres.append(f"[{2 * i}:v]scale={TUILE_LARGEUR}:{th},setsar=1[s{i}];[s{i}][{2 * i + 1}:v]overlay=6:6,"
+                           f"pad={cw}:{ch}:4:4:white[t{i}]")
+            sorties.append(f"[t{i}]")
+        nom = f"p{k + 1:02d}_{groupe[0]['t']:06.2f}-{groupe[-1]['t']:06.2f}s.jpg"
+        if n == 1:
+            filtres.append("[t0]null[out]")
+        else:
+            places = "|".join(f"{(i % PLANCHE_COLONNES) * cw}_{(i // PLANCHE_COLONNES) * ch}" for i in range(n))
+            filtres.append(f"{''.join(sorties)}xstack=inputs={n}:layout={places}:fill=white[out]")
+        r = lancer([ffmpeg, "-y", "-v", "error", *entrees, "-filter_complex", ";".join(filtres), "-map", "[out]",
+                    "-frames:v", "1", "-q:v", "3", dossier_p / nom], timeout=120)
+        for lab in dossier_p.glob("_etiquette*.ppm"):
+            lab.unlink()
+        if r.returncode != 0 or not (dossier_p / nom).exists():
+            shutil.rmtree(dossier_p, ignore_errors=True)
+            return None                                    # pas de planche : l'IA lira les images une à une
+        planches.append({"fichier": f"planches/{nom}", "de": groupe[0]["t"], "a": groupe[-1]["t"],
+                         "images": [im["fichier"] for im in groupe]})
+    return planches
+
+
 def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict) -> dict:
     duree = media["duree"]
     coupes, visible = detecter_coupes(ffmpeg, dossier / "media.mp4", duree)
@@ -666,6 +753,12 @@ def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict
              for i in range(len(bornes) - 1)]
     moyenne = round(duree / len(plans), 2) if plans else duree
     images = extraire_images(ffmpeg, dossier, choisir_images(duree, coupes, visible), largeur)
+    fin_hook = round(visible + HOOK_S, 2)
+    planches = faire_planches(ffmpeg, dossier, images, fin_hook, media)
+    if planches is None:                                   # ffmpeg n'a pas su assembler : tout en images seules
+        lecture = {"uneParUne": [im["fichier"] for im in images], "planches": []}
+    else:
+        lecture = {"uneParUne": [im["fichier"] for im in images if im["t"] < fin_hook], "planches": planches}
     rythme = ("très rapide" if moyenne < 1.5 else "rapide" if moyenne < 3 else "posé" if moyenne < 6
               else "plan quasi unique")
     shots = {
@@ -682,9 +775,13 @@ def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict
         "plans": plans,
         "largeurImages": largeur,
         "images": images,
+        "lecture": lecture,
         "_note": "Coupes franches détectées par changement d'image (seuil 0.3, sur l'image entière et sur sa "
                  "zone centrale) : un zoom brusque ou un texte plein écran compte comme une coupe, un fondu lent "
-                 "ou une animation dans un plan n'en est pas une. Vérifie sur les images.",
+                 "ou une animation dans un plan n'en est pas une. Vérifie sur les images. Lecture : les images des 5 "
+                 "premières secondes une par une (lecture.uneParUne), le reste en planches de 6 (lecture.planches, "
+                 "de gauche à droite puis de haut en bas, heure en haut à gauche, étiquette jaune = juste après "
+                 "une coupe). Texte illisible sur une planche : ouvre l'image seule dans frames/.",
     }
     ecrire_json(dossier / "shots.json", shots)
     return shots
@@ -756,7 +853,12 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
         arret("ffmpeg est introuvable : c'est un outil de Monteur IA, relance son installation.")
     CLONES.mkdir(exist_ok=True)
     aujourdhui = datetime.date.today().isoformat()
-    chemin = pathlib.Path(source.strip().strip("'\"")).expanduser()
+    brut = source.strip().strip("'\"")
+    if brut.startswith("file://"):
+        brut = urllib.parse.unquote(brut[7:])
+    chemin = pathlib.Path(brut).expanduser()
+    if not chemin.exists() and "\\ " in brut:
+        chemin = pathlib.Path(brut.replace("\\ ", " ")).expanduser()   # glissé depuis le Finder : « Mon\ Reel.mov »
     est_fichier = not re.match(r"https?://", source.strip()) and chemin.exists()
     if not est_fichier and not re.match(r"https?://", source.strip()):
         if chemin.suffix.lower() in FICHIER_VIDEO:
@@ -827,7 +929,7 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     t0 = time.time()
     shots = lire_json(dossier / "shots.json")
     if (refaire or shots is None or shots.get("largeurImages") != largeur or not (dossier / "frames").exists()
-            or "ouvertureNoireJusqua" not in shots):
+            or "ouvertureNoireJusqua" not in shots or "lecture" not in shots):
         dire("• coupes et images…")
         refait = True
         shots = analyser_plans(dossier, ffmpeg, largeur, media)
@@ -850,7 +952,13 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     dire(f"   {shots['nbCoupes']} coupes (dont {shots['coupes0a3s']} sur 0-3 s, {shots['coupes0a10s']} sur 0-10 s), "
          f"plan moyen {shots['dureeMoyennePlan']} s, rythme {shots['rythme']} (coupes franches seulement : "
          "les animations et zooms se voient sur les images)")
-    dire(f"   {len(shots['images'])} images à lire dans frames/ ({largeur} px)")
+    lec = shots["lecture"]
+    if lec["planches"]:
+        dire(f"   à lire : {len(lec['uneParUne'])} images une par une (les 5 premières secondes, dans frames/), puis "
+             f"{len(lec['planches'])} planche{'s' if len(lec['planches']) > 1 else ''} de 6 images au plus (le reste, "
+             "dans planches/)")
+    else:
+        dire(f"   à lire : {len(lec['uneParUne'])} images dans frames/ ({largeur} px)")
     premiere = transcript["phrases"][0]["texte"] if transcript.get("phrases") else None
     if premiere:
         dire(f"   première phrase : « {premiere[:140]} »")
@@ -859,7 +967,8 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     else:
         dire("   dossier déjà prêt, rien à refaire")
     dire("")
-    dire("Étape suivante (pour l'IA) : lis TOUTES les images de frames/ et transcript.json, puis suis le skill reel-cloneur.")
+    dire("Étape suivante (pour l'IA) : lis transcript.json, les images du début une par une, puis chaque planche ; "
+         "ensuite, suis le skill reel-cloneur.")
 
 
 def main() -> None:
@@ -876,7 +985,7 @@ def main() -> None:
         sys.exit(verifier())
     elif a.source == "comparer":
         if not a.dossier:
-            arret("Usage : python3 tools/cloner_reel.py comparer clones/<dossier>")
+            arret(f"Usage : {PY} tools/cloner_reel.py comparer clones/<dossier>")
         sys.exit(comparer(a.dossier))
     else:
         cloner(a.source, a.largeur, a.langue, a.refaire)

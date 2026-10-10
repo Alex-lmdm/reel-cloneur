@@ -3,6 +3,9 @@
 Adaptée de la grille « hook-analysis » du projet open source watchvideo (licence MIT, voir
 `CREDITS.md` de l'extension). On **décrit** ce que fait la vidéo ; on ne la note pas.
 
+Vocabulaire de travail : face au client, on dit **accroche dite** (hook parlé), **accroche
+visuelle** (hook visuel), **temps** ou **rôle** (beat), **appel à l'action** (CTA).
+
 Deux hooks, jamais un : le **hook parlé** (ce que l'oreille reçoit) et le **hook visuel** (ce que
 l'œil reçoit). Ils diffèrent souvent, et cet écart est souvent la trouvaille la plus utile.
 
