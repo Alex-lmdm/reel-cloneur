@@ -79,7 +79,8 @@ Installe l'extension étape par étape, sans jamais rien casser. Suis ces règle
 4. Lance `npm run sync` à la racine du dossier Monteur IA (il régénère CLAUDE.md / AGENTS.md avec
    l'aiguillage Reel Cloneur et copie le nouveau skill pour Codex dans `.agents/skills/`). Si la
    commande échoue, copie simplement `.claude/skills/reel-cloneur/` dans `.agents/skills/` à la
-   main.
+   main. Ce que cette commande affiche (par exemple un mot sur le style de montage) concerne
+   Monteur IA, pas l'extension : ne le recopie pas au client, dis juste que c'est fait.
 
 5. SMOKE TEST : `python3 tools/cloner_reel.py verifier` (Windows : `python …`). Il contrôle
    ffmpeg, Whisper, son modèle, yt-dlp et Node, puis fait une mini-transcription de test. La
@@ -89,11 +90,15 @@ RÈGLE POUR TOUTES LES ÉTAPES : ne passe jamais à l'étape suivante si l'étap
 En cas d'échec : diagnostique en trois lignes (message d'erreur → cause probable → UNE action
 corrective), puis retente.
 
-6. Affiche un TABLEAU récapitulatif ✅ / ❌ (dossier Monteur IA, skill copié, outil copié,
-   dossier clones/ et .gitignore, aiguillage, téléchargeur yt-dlp, sync, smoke test). Si tout
-   est ✅, conclus par : « Reel Cloneur™ est installé. Colle-moi le lien d'un Reel, d'un TikTok
-   ou d'un YouTube Short qui a explosé (ou glisse la vidéo ici) et dis "clone ce Reel". Si je
-   ne réagis pas, ouvre une nouvelle conversation dans ton dossier Monteur IA et redis-le. »
+6. PREMIÈRE INSTALLATION : affiche un TABLEAU récapitulatif ✅ / ❌ (dossier Monteur IA, skill
+   copié, outil copié, dossier clones/ et .gitignore, aiguillage, téléchargeur yt-dlp, sync,
+   smoke test). Si tout est ✅, conclus par : « Reel Cloneur™ est installé. Colle-moi le lien
+   d'un Reel, d'un TikTok ou d'un YouTube Short qui a explosé (ou glisse la vidéo ici) et dis
+   "clone ce Reel". Si je ne réagis pas, ouvre une nouvelle conversation dans ton dossier
+   Monteur IA et redis-le. »
+   MISE À JOUR (l'extension était déjà là) : pas de tableau. Une seule ligne : « Reel Cloneur™
+   est à jour, tout est ✅. Colle-moi un lien et dis "clone ce Reel". » Le tableau ne s'affiche
+   que si une étape a échoué.
 ```
 
 C'est tout. Laisse l'IA travailler et réponds-lui si elle te pose une question.
