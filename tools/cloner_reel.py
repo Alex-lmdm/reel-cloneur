@@ -819,7 +819,14 @@ def comparer(cible_txt: str, taille: int = 6) -> int:
                 col = next((i for i, c in enumerate(entete) if "dit" in c), 2)
                 dits = [l[col] for l in lignes[1:] if len(l) > col]
                 sources["script d'origine et sa traduction (analyse.md)"] = "\n".join(dits)
-    script = mots(script_p.read_text(encoding="utf-8"))
+    # Seul le texte prompteur compte : ce qui précède « À vérifier avant de tourner », « À reproduire
+    # au montage » ou « Pour Monteur IA » (les faits sur l'outil et le bloc technique reprennent des
+    # mots de la vidéo par nature, ce n'est pas une copie).
+    texte_script = script_p.read_text(encoding="utf-8")
+    coupe = re.search(r"\n## (À vérifier|À reproduire|Pour Monteur IA)", texte_script)
+    if coupe:
+        texte_script = texte_script[:coupe.start()]
+    script = mots(texte_script)
     trouvees = []
     for nom, texte in sources.items():
         m = mots(texte)
@@ -835,10 +842,10 @@ def comparer(cible_txt: str, taille: int = 6) -> int:
             else:
                 i += 1
     if not trouvees:
-        dire(f"ok : aucune suite de {taille} mots ou plus reprise du Reel d'origine (paroles, traduction, légende).")
+        dire(f"ok : aucune suite de {taille} mots ou plus reprise du Reel d'origine dans le texte prompteur (paroles, traduction, légende).")
         dire("(Le texte à l'écran n'est que dans les images : relis-le toi-même.)")
         return 0
-    dire(f"❌ {len(trouvees)} passage(s) repris du Reel d'origine (à réécrire) :")
+    dire(f"⚠️ {len(trouvees)} passage(s) proches du Reel d'origine dans le texte prompteur (à reformuler, sauf si le client veut les garder ou si c'est un fait sur l'outil) :")
     for nom, extrait in trouvees:
         dire(f"  - [{nom}] « {extrait} »")
     return 1

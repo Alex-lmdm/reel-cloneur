@@ -1,9 +1,9 @@
 # Modèle de `analyse.md`
 
-Recopie cette forme, remplie. C'est aussi le message montré au client : il le lit pour décider quoi
-faire, donc court et dans cet ordre. Les titres restent ; un point sans objet dit pourquoi en
-quelques mots (« Pas d'appel à l'action : la vidéo s'arrête sur le sommet. »). Langue : celle du
-client.
+Recopie cette forme, remplie, dans le **fichier** `analyse.md` : c'est la version complète, celle
+que relisent `script.md` et le contrôle anti-copie. Les titres restent ; un point sans objet dit
+pourquoi en quelques mots (« Pas d'appel à l'action : la vidéo s'arrête sur le sommet. »). Langue :
+celle du client. **Le message montré au client est plus court** : son modèle est en bas de ce fichier.
 
 ```markdown
 # Reel Cloneur™ · analyse
@@ -64,4 +64,36 @@ c) **Autre chose** : dis-moi.
 Réponds en une ligne (par exemple « a, avec mon mot-clé VIRAL » ou « b, pour {un exemple dans sa niche} »).
 
 *Lu : {n} images une par une (les 5 premières secondes) et {n} planches de 6 · transcription de {n} phrases.*
+```
+
+## Le message au client (version courte, 300 à 450 mots)
+
+Ce qu'il voit dans la conversation. Le fichier garde le détail.
+
+```markdown
+**En bref.** {2 ou 3 phrases : ce que fait la vidéo, pourquoi elle a probablement marché.}
+
+**Le script** *(traduit de l'anglais ; l'original est dans le fichier)*
+0:00 · *{phrase traduite}*
+0:04 · *{phrase traduite}* [à l'écran : « {texte qui ajoute quelque chose} »]
+0:08 · *{…}*
+…
+
+**Pourquoi ça a marché**
+- **L'accroche :** {type et ressort, en mots simples ; la promesse est tenue à 0:xx}.
+- **Le déroulé :** {nouvelle → outil → comment ça marche → son essai → c'est gratuit → commente un mot}.
+- **Le rythme :** un changement d'image toutes les ~{x} s ; {ce qui bouge : animations, chiffres en grand, plein écran}.
+- **La preuve :** {captures du site, son essai raconté, un chiffre…}.
+- **L'appel à l'action :** {commente « brain » à 0:30 ; plus de commentaires que de likes : le mot-clé a tourné}.
+
+**Maintenant, tu veux faire quoi ?**
+
+a) **{La même chose, en français}** : {présenter toi aussi X à ton public. C'est courant : plein de
+   créateurs partagent le même outil. Je réécris tout avec tes mots.}
+b) **La même mécanique, sur ton sujet** : {ton outil, ton offre ou ton conseil, présenté comme lui}.
+c) **Autre chose** : dis-moi.
+
+Réponds en une ligne (par exemple « a, avec mon mot-clé VIRAL » ou « b, pour {exemple dans sa niche} »).
+
+*Le détail (texte à l'écran, images, déroulé minuté) est dans `clones/{dossier}/analyse.md`.*
 ```

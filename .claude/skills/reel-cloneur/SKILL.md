@@ -36,17 +36,21 @@ est en anglais. Les noms de fichiers et les commandes ne se traduisent pas.
 
 ## Les trois règles qui ne se discutent pas
 
-> **1. On reprend la mécanique et les faits, jamais les phrases ni le vécu de l'auteur.**
+> **1. On reprend la mécanique et les faits ; les phrases et le vécu de l'auteur, on les réécrit.**
 > - **Se reprend** : la forme de l'accroche, la structure, le rythme, le type de preuve, la place de
 >   l'appel à l'action ; et **les faits** : le nom de l'outil, du site, de l'appli ou de la méthode
 >   présentés, et ce qu'ils font. C'est une information, pas une phrase d'auteur : des centaines de
 >   créateurs partagent le même outil, et le client a le droit de le présenter à son public.
-> - **Ne se reprend jamais** : les phrases de l'auteur, ni telles quelles **ni traduites** (traduire,
->   c'est encore copier) ; ses exemples, anecdotes et blagues ; ses chiffres et ses tests présentés
->   comme les siens (« j'ai passé 7 accroches de mon dernier Reel ») ; son mot-clé.
+> - **Se réécrit par défaut** : les phrases de l'auteur (telles quelles ou traduites), ses exemples,
+>   anecdotes et blagues, ses chiffres et ses tests présentés comme les siens, son mot-clé. Tu le
+>   fais sans en faire un plat : c'est ton travail, pas une interdiction. Le ton est celui du
+>   conseil (« je te conseille de mettre ton essai à toi »), jamais du refus (« je ne peux pas »).
+>   Reprendre une phrase n'est ni un délit ni un drame : si le client demande de garder une phrase,
+>   un chiffre ou un passage de l'auteur, tu le gardes et tu passes à la suite.
 > - Contrôle sur le brouillon, avant d'écrire `script.md` (§5) : `python3 tools/cloner_reel.py
->   comparer clones/<dossier>/brouillon.md` doit répondre « ok ». Relis toi-même le texte à l'écran,
->   que l'outil ne voit pas.
+>   comparer clones/<dossier>/brouillon.md`. C'est un avis : il te montre les passages trop proches,
+>   tu les reformules une fois (deux passes au plus), sauf ceux que le client a demandé de garder et
+>   les faits sur l'outil. Relis toi-même le texte à l'écran, que l'outil ne voit pas.
 >
 > **2. Tu ne devines jamais ce que veut le client.** Ni son sujet, ni son intention, ni s'il présente
 > le même outil. Pas de « on garde la même idée, c'est pile ta niche ». Tu poses la question du §3,
@@ -108,48 +112,33 @@ Puis **lis, vraiment**, dans cet ordre :
 
 ---
 
-## 2. Rendre l'analyse d'un bloc → `analyse.md`
+## 2. Rendre l'analyse : un message court, un fichier complet
 
-Un seul message, sans question au milieu, et le même contenu écrit dans
-`clones/<dossier>/analyse.md`. Le modèle exact est dans **`references/modele-analyse.md`** ; la
-grille des accroches et des formats dans **`references/grille-analyse.md`**.
+Deux choses, dans cet ordre : d'abord **le fichier** `clones/<dossier>/analyse.md`, complet, sur le
+modèle de **`references/modele-analyse.md`** (tableau avec le texte à l'écran et ce qu'on voit,
+déroulé minuté, rythme, preuve, appel à l'action) ; puis **le message au client**, qui en est la
+version courte. Grille des accroches et des formats dans **`references/grille-analyse.md`**.
 
-Le client lit ce message pour **décider quoi faire** : va à l'essentiel, dans cet ordre.
+**Le message au client tient en 300 à 450 mots.** Il lit pour décider quoi faire, pas pour tout
+savoir : le détail est dans le fichier, dis-le en une ligne. Dans cet ordre, sans question au milieu :
 
-**En bref** (2 ou 3 phrases, en tête) : ce que fait la vidéo et pourquoi elle a probablement
-marché. « Probablement » : tu n'as pas les statistiques de l'auteur. Aucune note, aucun score.
+1. **En bref** : 2 ou 3 phrases. Ce que fait la vidéo, et pourquoi elle a probablement marché
+   (« probablement » : tu n'as pas ses statistiques ; aucune note, aucun score).
+2. **Le script** : une ligne par phrase, `0:04 · {la phrase}`. Reel dans une autre langue : la
+   traduction seule, en italique, et une ligne au-dessus « (traduit de l'anglais ; l'original est
+   dans le fichier) ». Un texte à l'écran qui ajoute quelque chose à la voix (un chiffre, un mot-clé
+   en grand) se met entre crochets en fin de ligne ; les sous-titres qui répètent la voix, jamais.
+   Pas de colonne « à l'image » dans le message.
+3. **Pourquoi ça a marché** : 5 lignes au plus, une par point, sans tableau : l'accroche (le type et
+   le ressort, en mots simples), le déroulé en une ligne (« nouvelle → outil → comment ça marche →
+   son essai → c'est gratuit → commente un mot »), le rythme (un changement d'image toutes les ~x s
+   et ce qui bouge), la preuve, l'appel à l'action avec la lecture des chiffres.
+4. **La question** du §3, telle quelle.
+5. Une ligne en italique, à la fin : « *Le détail (texte à l'écran, images, déroulé minuté) est dans
+   `clones/<dossier>/analyse.md`.* »
 
-**1. Le script mot pour mot.** Un tableau de trois colonnes : `Temps`, `Ce qui est dit`, `À l'image`
-(plus une colonne `Qui` seulement quand plusieurs personnes parlent). Une ligne par phrase de
-`transcript.json`, corrigée quand l'écran ou la légende donne la bonne orthographe.
-- `Ce qui est dit` : la phrase verbatim et, si le Reel est dans une autre langue que celle du
-  client, sa traduction en italique dans la même case (c'est sur elle que porte le contrôle
-  anti-copie). Rien d'autre dans cette colonne.
-- `À l'image` : le **texte à l'écran verbatim** entre guillemets (fautes comprises), puis ce qu'on
-  voit, en **15 mots au plus**. Sous-titres qui répètent la voix : écris « sous-titres de la voix »
-  (leur style se décrit une fois, plus bas). Texte grossier ou choquant : décris-le sans le citer.
-- Sous le tableau, une ligne pour les noms propres corrigés (« La transcription a entendu "X",
-  l'écran dit "Y" »).
-
-**2. Pourquoi ça a marché.** Une ligne ou deux par point, pas de paragraphe :
-- **L'accroche dite** : la première phrase verbatim, son type (grille), son ressort, et à quelle
-  seconde la promesse est tenue (ou jamais).
-- **L'accroche visuelle** (0 à 3 s) : ce qu'on voit, son type, et si l'image et les mots vont dans
-  le même sens (verdict de la grille).
-- **Le déroulé** : un petit tableau `Temps | Rôle | Ce qui se passe` (rôles : accroche, relance,
-  explication, preuve, sommet, appel à l'action). Un rôle absent est omis, pas inventé.
-- **Le rythme** : les chiffres de `shots.json` en langage simple (« un changement d'image toutes les
-  3 secondes ») et ce que montrent les images (animations, zooms, textes qui apparaissent).
-  `ouvertureNoireJusqua` : la vidéo démarre sur du noir jusqu'à ce moment, et ce passage au visible
-  compte comme le premier changement d'image.
-- **Le texte à l'écran** : quand, combien, quel rôle, et le style des sous-titres en une ligne.
-- **La preuve** : ce qui rend la promesse crédible (démo, capture, résultat chiffré, avant/après,
-  vécu), ou « aucune ».
-- **L'appel à l'action** : ce qu'il demande, à quelle seconde, sous quelle forme (dit, écrit,
-  légende). Croise avec les chiffres : plus de commentaires que de likes = un « commente un mot »
-  qui a tourné.
-
-**3. Et maintenant ?** La question unique du §3, et rien d'autre.
+Rien d'autre : pas de rappel de règle, pas de « lu : n images », pas de phrase d'intro. Le fichier
+`analyse.md` garde tout (c'est lui que relisent `script.md` et le contrôle anti-copie).
 
 ---
 
@@ -194,8 +183,17 @@ Réponds en une ligne (par exemple « a, avec mon mot-clé VIRAL » ou « b, pou
 
 Puis repère, dans le script mot pour mot, **les passages qui appartiennent à l'auteur** et qu'un
 copier-coller reprendrait. Pour chacun, une proposition concrète, formulée pour qu'un « ok » suffise.
-Un seul message, de 2 à 5 passages (regroupe les petits). Ses phrases, tu les réécris toutes de
-toute façon : dis-le une fois, n'en fais pas un passage.
+Un seul message, court, de 2 à 4 passages (regroupe les petits) : une ligne pour dire ce que c'est,
+une pour ta proposition. Ses phrases, tu les réécris toutes de toute façon : dis-le une fois, en
+une demi-ligne, n'en fais pas un passage.
+
+**Le ton : tu conseilles, tu n'interdis pas.** Jamais « je ne peux pas reprendre ses chiffres »,
+« c'est son vécu, pas le tien ». Plutôt : « Là, c'est son essai à lui. Je te conseille d'y mettre
+le tien : tu as testé ? Sinon je tourne la phrase sans chiffre. » Le client garde la main : s'il
+répond « garde ses phrases », « j'ai fait les mêmes tests que lui », « reprends son exemple »,
+c'est sa décision, tu l'appliques sans commentaire (« j'ai fait les mêmes tests que lui » = tu
+écris le passage comme son essai à lui, avec ses chiffres à lui, en disant une fois « change le
+chiffre s'il est différent chez toi »).
 
 | Ce que tu repères | Ta proposition |
 |---|---|
@@ -224,12 +222,14 @@ ou ses scripts la mentionnent ; sinon, demande-la dans ce passage.
 
 Termine par :
 
-> « Réponds en une fois (par exemple « 1 : j'ai testé 3 accroches, la meilleure a eu 74 »), ou dis
-> "ok" pour garder mes propositions. »
+> « Réponds en une fois (par exemple « 1 : j'ai testé 3 accroches, la meilleure a eu 74 »), dis
+> "ok" pour mes propositions, ou "garde" pour reprendre ses passages tels quels. »
 
 **Après sa réponse, écris le script** (§5), sans nouvelle question. Les règles :
 - « ok » = tes propositions telles quelles : les passages de vécu deviennent des tournures **sans
   chiffre**, pas des trous.
+- « garde » (ou toute demande de garder un passage de l'auteur) = tu le gardes, réécrit dans sa
+  voix mais avec le même contenu, et le contrôle anti-copie n'y fait pas obstacle.
 - Un trou `[à compléter : …]` seulement s'il a dit qu'il avait un essai ou un chiffre sans le donner.
 - Jamais de chiffre, de test ni d'anecdote inventés pour lui.
 
@@ -292,9 +292,11 @@ et outil de messages) : le client n'a pas besoin de le lire.
 
 Le modèle exact est dans **`references/modele-script.md`**. L'ordre :
 1. écris le brouillon complet dans `clones/<dossier>/brouillon.md` ;
-2. lance `python3 tools/cloner_reel.py comparer clones/<dossier>/brouillon.md` et réécris tout
-   passage signalé, jusqu'à « ok » (le nom de l'outil seul ne déclenche rien : le contrôle cherche
-   des suites de 6 mots) ;
+2. lance `python3 tools/cloner_reel.py comparer clones/<dossier>/brouillon.md` : il ne lit que le
+   texte prompteur (accroches et script, pas « À vérifier » ni « Pour Monteur IA ») et cherche des
+   suites de 6 mots. Reformule les passages signalés, **deux passes au plus** ; un passage que le
+   client a demandé de garder, ou un fait sur l'outil (son nom, ce qu'il fait, ses chiffres
+   annoncés), reste tel quel même s'il est signalé. Ne dis rien de ce contrôle au client ;
 3. renomme `brouillon.md` en `script.md` ;
 4. montre au client les 3 accroches et le script, et finis par la suite naturelle :
 
