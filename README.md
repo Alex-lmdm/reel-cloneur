@@ -38,8 +38,8 @@ Puis il te demande, par exemple : « Toi, tu offres quoi à la fin ? Par défaut
 recevoir ta liste de courses. » Tu dis « ok ». Il t'écrit ton script, et la liste des choix de
 montage.
 
-Les trois analyses complètes faites pendant nos tests (un Reel, un TikTok, un YouTube Short) sont
-dans le dossier [`exemples/`](exemples/).
+Un exemple complet (analyse + script) fait pendant nos tests est dans le dossier
+[`exemples/`](exemples/).
 
 ---
 

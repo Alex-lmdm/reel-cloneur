@@ -15,6 +15,7 @@ Usage :
     python3 tools/cloner_reel.py "<lien ou fichier vidéo>" [--largeur 768] [--langue en] [--refaire]
     python3 tools/cloner_reel.py installer     # crée .reel-cloneur-venv/ avec yt-dlp (une fois)
     python3 tools/cloner_reel.py verifier      # contrôle des outils (smoke test)
+    python3 tools/cloner_reel.py comparer clones/<dossier>   # script.md reprend-il des phrases ?
 
 Règles : jamais de cookies ni de connexion au compte du client ; si un lien ne se télécharge pas,
 l'outil le dit simplement et propose de glisser le fichier vidéo à la place. Relancer l'outil sur
@@ -636,6 +637,48 @@ def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict
     return shots
 
 
+# ------------------------------------------------------------------ test anti-copie
+def mots(texte: str):
+    t = unicodedata.normalize("NFKD", (texte or "").lower()).encode("ascii", "ignore").decode()
+    return re.findall(r"[a-z0-9]+", t)
+
+
+def comparer(dossier_txt: str, taille: int = 6) -> int:
+    """Cherche dans script.md toute suite de `taille` mots (ou plus) reprise du Reel d'origine."""
+    dossier = pathlib.Path(dossier_txt).expanduser()
+    if dossier.is_file():
+        dossier = dossier.parent
+    script_p = dossier / "script.md"
+    if not script_p.exists():
+        arret(f"Pas de script.md dans {dossier}")
+    transcript = lire_json(dossier / "transcript.json") or {}
+    meta = lire_json(dossier / "meta.json") or {}
+    sources = {"paroles": transcript.get("texte") or "", "légende": meta.get("legende") or ""}
+    script = mots(script_p.read_text(encoding="utf-8"))
+    trouvees = []
+    for nom, texte in sources.items():
+        m = mots(texte)
+        grammes = {tuple(m[i:i + taille]) for i in range(len(m) - taille + 1)}
+        i = 0
+        while i <= len(script) - taille:
+            if tuple(script[i:i + taille]) in grammes:
+                j = i + taille
+                while j < len(script) and tuple(script[j - taille + 1:j + 1]) in grammes:
+                    j += 1
+                trouvees.append((nom, " ".join(script[i:j])))
+                i = j
+            else:
+                i += 1
+    if not trouvees:
+        dire(f"ok : aucune suite de {taille} mots ou plus reprise des paroles ni de la légende du Reel d'origine.")
+        dire("(Le texte à l'écran n'est que dans les images : relis-le toi-même.)")
+        return 0
+    dire(f"❌ {len(trouvees)} passage(s) repris du Reel d'origine (à réécrire) :")
+    for nom, extrait in trouvees:
+        dire(f"  - [{nom}] « {extrait} »")
+    return 1
+
+
 # ------------------------------------------------------------------ le clonage
 def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     debut = time.time()
@@ -716,7 +759,8 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
         dire(f"  ok ({time.time() - t0:.1f} s)")
 
     meta.update({"duree": media["duree"], "largeur": media["largeur"], "hauteur": media["hauteur"],
-                 "fps": media["fps"], "dossier": str(dossier), "clonéLe": datetime.datetime.now().isoformat(timespec="seconds")})
+                 "fps": media["fps"], "dossier": str(dossier)})
+    meta.setdefault("clonéLe", datetime.datetime.now().isoformat(timespec="seconds"))
     ecrire_json(dossier / "meta.json", meta)
 
     # ---- résumé court (l'IA lit ensuite les fichiers eux-mêmes)
@@ -729,12 +773,15 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     dire(f"   vues {n(meta.get('vues'))} · likes {n(meta.get('likes'))} · commentaires {n(meta.get('commentaires'))}")
     dire(f"   {len(transcript.get('segments') or [])} phrases transcrites (langue : {transcript.get('langue')})")
     dire(f"   {shots['nbCoupes']} coupes (dont {shots['coupes0a3s']} sur 0-3 s, {shots['coupes0a10s']} sur 0-10 s), "
-         f"plan moyen {shots['dureeMoyennePlan']} s, rythme {shots['rythme']}")
+         f"plan moyen {shots['dureeMoyennePlan']} s, rythme {shots['rythme']} (coupes franches seulement : "
+         "les animations et zooms se voient sur les images)")
     dire(f"   {len(shots['images'])} images à lire dans frames/ ({largeur} px)")
     premiere = (transcript.get("segments") or [{}])[0].get("texte") if transcript.get("segments") else None
     if premiere:
         dire(f"   première phrase : « {premiere[:140]} »")
-    dire(f"   durée totale : {time.time() - debut:.1f} s")
+    duree_totale = time.time() - debut
+    dire(f"   durée totale : {duree_totale:.1f} s" + (" (tout était déjà prêt, rien n'a été refait)"
+                                                    if duree_totale < 1 else ""))
     dire("")
     dire("Étape suivante (pour l'IA) : lis TOUTES les images de frames/ et transcript.json, puis suis le skill reel-cloneur.")
 
@@ -742,6 +789,7 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
 def main() -> None:
     p = argparse.ArgumentParser(description="Reel Cloneur : prépare l'analyse d'un Reel (lien ou fichier).")
     p.add_argument("source", help="lien du Reel / TikTok / Short, chemin d'un fichier vidéo, ou « installer » / « verifier »")
+    p.add_argument("dossier", nargs="?", help="avec « comparer » : le dossier clones/<…> à vérifier")
     p.add_argument("--largeur", type=int, default=512, choices=[512, 768], help="largeur des images (512 par défaut)")
     p.add_argument("--langue", help="force la langue parlée (fr, en, es…) ; sinon détectée")
     p.add_argument("--refaire", action="store_true", help="refait tout, même ce qui est déjà prêt")
@@ -750,6 +798,10 @@ def main() -> None:
         installer()
     elif a.source in ("verifier", "vérifier"):
         sys.exit(verifier())
+    elif a.source == "comparer":
+        if not a.dossier:
+            arret("Usage : python3 tools/cloner_reel.py comparer clones/<dossier>")
+        sys.exit(comparer(a.dossier))
     else:
         cloner(a.source, a.largeur, a.langue, a.refaire)
 
