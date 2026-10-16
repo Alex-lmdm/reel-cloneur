@@ -11,12 +11,15 @@ L'outil fait toute la partie mécanique ; l'IA fait ensuite la lecture et l'écr
     frames/          les images (une par coupe, une par seconde, deux par seconde sur les 5 premières s)
     planches/        planches-contact de 6 images (au-delà des 5 premières s), heure écrite sur chaque image
     meta.json        plateforme, auteur, date, légende, likes, commentaires, vues si connues
+    style.json       avec --style : rythme dans le temps, couleurs qui reviennent, et rafales/ (images
+                     rapprochées : comment les sous-titres apparaissent, à quoi ressemblent les transitions)
 
 Usage :
-    python3 tools/cloner_reel.py "<lien ou fichier vidéo>" [--largeur 768] [--langue en] [--refaire]
+    python3 tools/cloner_reel.py "<lien ou fichier vidéo>" [--style] [--largeur 768] [--langue en] [--refaire]
     python3 tools/cloner_reel.py installer     # crée .reel-cloneur-venv/ avec yt-dlp (une fois)
     python3 tools/cloner_reel.py verifier      # contrôle des outils (smoke test)
     python3 tools/cloner_reel.py comparer clones/<dossier>[/brouillon.md]   # le script reprend-il des phrases ?
+    python3 tools/cloner_reel.py couleurs clones/<dossier>/frames/<image>.jpg [--zone bas]   # couleurs exactes
 
 Règles : jamais de cookies ni de connexion au compte du client ; si un lien ne se télécharge pas,
 l'outil le dit simplement et propose de glisser le fichier vidéo à la place. Relancer l'outil sur
@@ -75,6 +78,9 @@ PLANCHE_COLONNES, PLANCHE_LIGNES = 3, 2
 TUILE_LARGEUR = 320                  # 3 × 320 px : planche d'environ 1 000 × 1 150 px, texte encore lisible
 ECART_MIN = 0.35                     # deux images plus proches que ça : on n'en garde qu'une
 FICHIER_VIDEO = (".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi", ".3gp")
+# Une vidéo HD est codée en bt709 ; sans le préciser, ffmpeg la lit en bt601 et décale les couleurs
+# des images extraites (le jaune #FFEE00 sortait #FCFD09). « auto » suit ce que déclare la vidéo.
+COULEURS_JUSTES = "in_color_matrix=auto:out_color_matrix=bt601"
 
 
 # ------------------------------------------------------------------ petits utilitaires
@@ -660,7 +666,7 @@ def extraire_images(ffmpeg: str, dossier: pathlib.Path, choix, largeur: int):
     for i, (t, raison) in enumerate(choix):
         nom = f"f{i:02d}_{t:06.2f}s.jpg"
         r = lancer([ffmpeg, "-y", "-v", "error", "-ss", f"{t:.2f}", "-i", dossier / "media.mp4", "-frames:v", "1",
-                    "-vf", f"scale={largeur}:-2", "-q:v", "3", frames / nom], timeout=120)
+                    "-vf", f"scale={largeur}:-2:{COULEURS_JUSTES}", "-q:v", "3", frames / nom], timeout=120)
         if r.returncode == 0 and (frames / nom).exists():
             liste.append({"fichier": f"frames/{nom}", "t": t, "raison": raison})
     return liste
@@ -698,6 +704,34 @@ def etiquette(texte: str, chemin: pathlib.Path, fond=(255, 255, 255), echelle: i
     chemin.write_bytes(f"P6 {l} {h} 255\n".encode() + bytes(v for rang in px for p in rang for v in p))
 
 
+def assembler_planche(ffmpeg: str, sources, sortie: pathlib.Path, colonnes: int, tuile: int, media: dict) -> bool:
+    """Colle des images en une planche (`colonnes` par rang, dans l'ordre de lecture), chacune avec son
+    heure en haut à gauche ; `sources` = [(fichier, t, jaune)], jaune = étiquette jaune. Vrai si la
+    planche est écrite."""
+    lv, hv = media.get("largeur") or 9, media.get("hauteur") or 16
+    th = max(2, int(round(tuile * hv / lv / 2)) * 2)
+    cw, ch = tuile + 8, th + 8                             # une case = l'image + 4 px de blanc autour
+    entrees, filtres, sorties = [], [], []
+    n = len(sources)
+    for i, (fichier, t, jaune) in enumerate(sources):
+        lab = sortie.parent / f"_etiquette{i}.ppm"
+        etiquette(mmss(t), lab, (255, 214, 0) if jaune else (255, 255, 255))
+        entrees += ["-i", fichier, "-i", lab]
+        filtres.append(f"[{2 * i}:v]scale={tuile}:{th},setsar=1[s{i}];[s{i}][{2 * i + 1}:v]overlay=6:6,"
+                       f"pad={cw}:{ch}:4:4:white[t{i}]")
+        sorties.append(f"[t{i}]")
+    if n == 1:
+        filtres.append("[t0]null[out]")
+    else:
+        places = "|".join(f"{(i % colonnes) * cw}_{(i // colonnes) * ch}" for i in range(n))
+        filtres.append(f"{''.join(sorties)}xstack=inputs={n}:layout={places}:fill=white[out]")
+    r = lancer([ffmpeg, "-y", "-v", "error", *entrees, "-filter_complex", ";".join(filtres), "-map", "[out]",
+                "-frames:v", "1", "-q:v", "3", sortie], timeout=120)
+    for lab in sortie.parent.glob("_etiquette*.ppm"):
+        lab.unlink()
+    return r.returncode == 0 and sortie.exists()
+
+
 def faire_planches(ffmpeg: str, dossier: pathlib.Path, images, fin_hook: float, media: dict):
     """Les images au-delà des 5 premières secondes, par planches de 6 (3 × 2), dans l'ordre de lecture.
 
@@ -709,35 +743,15 @@ def faire_planches(ffmpeg: str, dossier: pathlib.Path, images, fin_hook: float, 
     if not reste:
         return []
     dossier_p.mkdir()
-    lv, hv = media.get("largeur") or 9, media.get("hauteur") or 16
-    th = max(2, int(round(TUILE_LARGEUR * hv / lv / 2)) * 2)
-    cw, ch = TUILE_LARGEUR + 8, th + 8                    # une case = l'image + 4 px de blanc autour
     par_planche = PLANCHE_COLONNES * PLANCHE_LIGNES
     nb = -(-len(reste) // par_planche)                     # planches équilibrées : 32 images → 6,6,5,5,5,5
     bornes = [round(i * len(reste) / nb) for i in range(nb + 1)]
     planches = []
     for k in range(nb):
         groupe = reste[bornes[k]:bornes[k + 1]]
-        entrees, filtres, sorties = [], [], []
-        n = len(groupe)
-        for i, im in enumerate(groupe):
-            lab = dossier_p / f"_etiquette{i}.ppm"
-            etiquette(mmss(im["t"]), lab, (255, 214, 0) if im["raison"] == "coupe" else (255, 255, 255))
-            entrees += ["-i", dossier / im["fichier"], "-i", lab]
-            filtres.append(f"[{2 * i}:v]scale={TUILE_LARGEUR}:{th},setsar=1[s{i}];[s{i}][{2 * i + 1}:v]overlay=6:6,"
-                           f"pad={cw}:{ch}:4:4:white[t{i}]")
-            sorties.append(f"[t{i}]")
         nom = f"p{k + 1:02d}_{groupe[0]['t']:06.2f}-{groupe[-1]['t']:06.2f}s.jpg"
-        if n == 1:
-            filtres.append("[t0]null[out]")
-        else:
-            places = "|".join(f"{(i % PLANCHE_COLONNES) * cw}_{(i // PLANCHE_COLONNES) * ch}" for i in range(n))
-            filtres.append(f"{''.join(sorties)}xstack=inputs={n}:layout={places}:fill=white[out]")
-        r = lancer([ffmpeg, "-y", "-v", "error", *entrees, "-filter_complex", ";".join(filtres), "-map", "[out]",
-                    "-frames:v", "1", "-q:v", "3", dossier_p / nom], timeout=120)
-        for lab in dossier_p.glob("_etiquette*.ppm"):
-            lab.unlink()
-        if r.returncode != 0 or not (dossier_p / nom).exists():
+        sources = [(dossier / im["fichier"], im["t"], im["raison"] == "coupe") for im in groupe]
+        if not assembler_planche(ffmpeg, sources, dossier_p / nom, PLANCHE_COLONNES, TUILE_LARGEUR, media):
             shutil.rmtree(dossier_p, ignore_errors=True)
             return None                                    # pas de planche : l'IA lira les images une à une
         planches.append({"fichier": f"planches/{nom}", "de": groupe[0]["t"], "a": groupe[-1]["t"],
@@ -785,6 +799,237 @@ def analyser_plans(dossier: pathlib.Path, ffmpeg: str, largeur: int, media: dict
     }
     ecrire_json(dossier / "shots.json", shots)
     return shots
+
+
+# ------------------------------------------------------------------ style de montage (--style)
+# Ce que l'IA ne voit pas bien sur des images fixes : comment un sous-titre apparaît, à quoi ressemble
+# une transition, la couleur exacte. L'outil le prépare ; l'IA décrit et décide. Le son ne se mesure
+# pas ici : un niveau ne distingue pas un bruitage d'une syllabe ni une musique basse du bruit de la
+# pièce (essais du 16/10/2026) ; le skill demande au client ce qu'il entend.
+RAFALE_SOUS_TITRES_PAS = 0.15        # 8 images en 1,2 s : on voit les mots arriver (ou se surligner)
+RAFALE_COUPE_PAS = 0.12              # 6 images autour d'une coupe : coupe sèche, glissé, zoom, flash…
+RAFALE_TUILE = 360                   # rafales plus grandes que les planches : la police doit se reconnaître
+
+
+def pixels(ffmpeg: str, image: pathlib.Path, largeur: int = 48, zone=None):
+    """Les pixels RVB d'une image réduite (largeur 48 px), éventuellement d'une bande de l'image
+    (`zone` = (haut, bas) en fractions de la hauteur)."""
+    vf = f"scale={largeur}:-2"
+    if zone:
+        vf = f"crop=iw:ih*{zone[1] - zone[0]:.3f}:0:ih*{zone[0]:.3f}," + vf
+    r = subprocess.run([str(ffmpeg), "-v", "error", "-i", str(image), "-vf", vf, "-f", "rawvideo",
+                        "-pix_fmt", "rgb24", "-"], capture_output=True, timeout=60)
+    if r.returncode != 0:
+        return []
+    b = r.stdout
+    return [(b[i], b[i + 1], b[i + 2]) for i in range(0, len(b) - 2, 3)]
+
+
+def classer_couleurs(px):
+    """Couleurs par familles (vives, blanc, noir), avec leur part et leur teinte la plus fréquente (pas la
+    moyenne : les bords flous d'une lettre la tireraient vers le gris)."""
+    import colorsys
+    familles = {}
+    for r, g, b in px:
+        h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+        if v < 0.13:
+            cle = "noir"
+        elif s < 0.12 and v > 0.88:
+            cle = "blanc"
+        elif s >= 0.6 and v >= 0.55:
+            # Familles de 30° centrées : rouge autour de 0°, orange de 15 à 45°, jaune de 45 à 75°…
+            cle = "vive-" + ("rouge", "orange", "jaune", "jaune-vert", "vert", "vert", "cyan", "bleu", "bleu",
+                             "violet", "magenta", "rose")[int((h * 360 + 15) % 360 // 30)]
+        else:
+            continue
+        f = familles.setdefault(cle, {})
+        case = f.setdefault((r // 16, g // 16, b // 16), [0, 0, 0, 0])
+        case[0] += 1
+        case[1] += r
+        case[2] += g
+        case[3] += b
+    total = max(1, len(px))
+    sortie = {}
+    for cle, cases in familles.items():
+        n, rs, gs, bs = max(cases.values(), key=lambda c: c[0])
+        sortie[cle] = {"part": round(sum(c[0] for c in cases.values()) / total, 4),
+                       "hex": f"#{rs // n:02X}{gs // n:02X}{bs // n:02X}", "poids": n}
+    return sortie
+
+
+def analyser_couleurs(ffmpeg: str, dossier: pathlib.Path, images) -> dict:
+    """Les couleurs vives qui reviennent d'image en image (texte surligné, accent de marque), et l'allure
+    générale de l'image (claire ou sombre, vive ou sobre)."""
+    import colorsys
+    cumul, presence, lum, sat, n_px = {}, {}, 0.0, 0.0, 0
+    for im in images:
+        px = pixels(ffmpeg, dossier / im["fichier"], 120)
+        if not px:
+            continue
+        for r, g, b in px:
+            _, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            lum += v
+            sat += s
+        n_px += len(px)
+        for cle, val in classer_couleurs(px).items():
+            c = cumul.setdefault(cle, [0.0, {}])
+            c[0] += val["part"]
+            c[1][val["hex"]] = c[1].get(val["hex"], 0) + val["poids"]
+            if val["part"] >= 0.005:
+                presence[cle] = presence.get(cle, 0) + 1
+    nb = max(1, len(images))
+    vives = sorted(([k[5:], round(v[0] / nb, 4), presence.get(k, 0), v[1]] for k, v in cumul.items()
+                    if k.startswith("vive-") and presence.get(k, 0) >= max(2, nb // 6)),
+                   key=lambda x: -x[2])[:4]
+
+    def hex_moyen(teintes):
+        return max(teintes.items(), key=lambda x: x[1])[0]
+
+    lum_m = round(lum / max(1, n_px), 2)
+    sat_m = round(sat / max(1, n_px), 2)
+    allure = ("image sombre" if lum_m < 0.35 else "image claire" if lum_m > 0.62 else "image moyenne") + ", " + (
+        "presque noir et blanc" if sat_m < 0.08 else "couleurs sobres" if sat_m < 0.22 else "couleurs vives")
+    return {
+        "vivesRecurrentes": [{"famille": f, "hex": hex_moyen(h), "partMoyenne": p, "images": n}
+                             for f, p, n, h in vives],
+        "blanc": round(cumul.get("blanc", [0])[0] / nb, 3),
+        "noir": round(cumul.get("noir", [0])[0] / nb, 3),
+        "luminositeMoyenne": lum_m,
+        "saturationMoyenne": sat_m,
+        "allure": allure,
+        "_note": "Couleurs vives présentes sur plusieurs images (souvent : le mot surligné, l'accent des "
+                 "animations ; parfois le décor). Vérifie sur les images à quoi chacune correspond. Couleur "
+                 "exacte d'un élément : « couleurs <image> --zone bas|milieu|haut ».",
+    }
+
+
+def rafales(ffmpeg: str, dossier: pathlib.Path, transcript: dict, shots: dict, media: dict) -> list:
+    """Planches d'images rapprochées : pendant une phrase (comment le sous-titre apparaît) et autour de
+    trois coupes (à quoi ressemble la transition)."""
+    sortie = dossier / "rafales"
+    shutil.rmtree(sortie, ignore_errors=True)
+    sortie.mkdir()
+    tmp = sortie / "_images"
+    tmp.mkdir()
+    duree = media["duree"]
+    debut_utile = (shots.get("ouvertureNoireJusqua") or 0) + HOOK_S
+    plans = []
+    # 1. Sous-titres : un morceau de phrase d'au moins 5 mots et 1,6 s, au plus près du milieu de la vidéo.
+    morceaux = [m for m in transcript.get("morceaux") or []
+                if len(m["texte"].split()) >= 5 and m["fin"] - m["debut"] >= 1.6 and m["debut"] >= debut_utile * 0.6]
+    if not morceaux:
+        morceaux = [m for m in transcript.get("morceaux") or [] if m["fin"] - m["debut"] >= 1.2]
+    if morceaux:
+        m = min(morceaux, key=lambda x: abs((x["debut"] + x["fin"]) / 2 - duree / 2))
+        temps = [round(m["debut"] + 0.05 + i * RAFALE_SOUS_TITRES_PAS, 2) for i in range(8)]
+        plans.append(("sous-titres", [t for t in temps if t < duree - 0.05], None, 4, m["texte"]))
+    # 2. Transitions : la première coupe après l'ouverture, une au milieu, une aux trois quarts.
+    coupes = shots.get("coupes") or []
+    choisies = []
+    for cible in (0.0, duree / 2, duree * 0.75):
+        c = min(coupes, key=lambda x: abs(x - cible), default=None)
+        if c is not None and c not in choisies:
+            choisies.append(c)
+    for c in choisies:
+        temps = [round(c + d * RAFALE_COUPE_PAS, 2) for d in (-2, -1, 0, 1, 2, 3)]
+        temps[2] = round(c + 0.03, 2)
+        plans.append(("coupe", [t for t in temps if 0 <= t < duree - 0.05], c, 3, None))
+    resultat = []
+    for k, (genre, temps, coupe, colonnes, texte) in enumerate(plans):
+        sources = []
+        for i, t in enumerate(temps):
+            f = tmp / f"r{k}_{i}.jpg"
+            r = lancer([ffmpeg, "-y", "-v", "error", "-ss", f"{t:.2f}", "-i", dossier / "media.mp4", "-frames:v",
+                        "1", "-vf", f"scale=768:-2:{COULEURS_JUSTES}", "-q:v", "3", f], timeout=120)
+            if r.returncode == 0 and f.exists():
+                sources.append((f, t, coupe is not None and t >= coupe))
+        if len(sources) < 3:
+            continue
+        nom = (f"{k + 1}-sous-titres_{temps[0]:06.2f}s.jpg" if genre == "sous-titres"
+               else f"{k + 1}-coupe_{coupe:06.2f}s.jpg")
+        if assembler_planche(ffmpeg, sources, sortie / nom, colonnes, RAFALE_TUILE, media):
+            entree = {"genre": genre, "fichier": f"rafales/{nom}", "de": sources[0][1], "a": sources[-1][1]}
+            if genre == "sous-titres":
+                entree["paroles"] = texte
+                entree["pas"] = RAFALE_SOUS_TITRES_PAS
+            else:
+                entree["coupe"] = coupe
+                entree["pas"] = RAFALE_COUPE_PAS
+            resultat.append(entree)
+    shutil.rmtree(tmp, ignore_errors=True)
+    return resultat
+
+
+def mediane(valeurs):
+    v = sorted(valeurs)
+    if not v:
+        return None
+    m = len(v) // 2
+    return v[m] if len(v) % 2 else (v[m - 1] + v[m]) / 2
+
+
+def analyser_rythme(shots: dict) -> dict:
+    """Le rythme dans le temps : où ça coupe vite, où ça respire."""
+    duree, coupes = shots["duree"], shots.get("coupes") or []
+    plans = [p["duree"] for p in shots.get("plans") or []]
+    tranches = []
+    t = 0.0
+    while t < duree - 0.5:
+        fin = min(duree, t + 5)
+        tranches.append({"de": round(t, 1), "a": round(fin, 1), "coupes": sum(1 for c in coupes if t <= c < fin)})
+        t = fin
+    debut = tranches[0]["coupes"] if tranches else 0
+    suite = [tr["coupes"] for tr in tranches[1:]]
+    moy_suite = sum(suite) / len(suite) if suite else 0
+    if not coupes:
+        lecture = "un seul plan, aucune coupe franche : le rythme vient des animations ou du zoom (voir les images)"
+    else:
+        lecture = (f"{len(coupes)} coupes ; un plan dure le plus souvent {mediane(plans):.1f} s "
+                   f"(de {min(plans):.1f} à {max(plans):.1f} s)")
+        if debut >= moy_suite + 2:
+            lecture += f" ; accroche plus nerveuse : {debut} coupes sur les 5 premières secondes"
+    return {"planMedian": round(mediane(plans) or duree, 2), "planLePlusCourt": round(min(plans or [duree]), 2),
+            "planLePlusLong": round(max(plans or [duree]), 2), "coupesParTranche5s": tranches, "lecture": lecture}
+
+
+def analyser_style(dossier: pathlib.Path, ffmpeg: str, media: dict, transcript: dict, shots: dict) -> dict:
+    """style.json : rythme dans le temps, couleurs qui reviennent, rafales d'images."""
+    style = {
+        "rythme": analyser_rythme(shots),
+        "couleurs": analyser_couleurs(ffmpeg, dossier, shots.get("images") or []),
+        "rafales": rafales(ffmpeg, dossier, transcript, shots, media),
+        "largeurImages": shots.get("largeurImages"),
+        "_note": "Mesures pour la fiche de style (skill reel-cloneur, mode style). Les rafales sont des "
+                 "planches d'images rapprochées (heure en haut à gauche, étiquette jaune = après la coupe) : "
+                 "« sous-titres » montre comment le texte arrive pendant une phrase, « coupe » à quoi "
+                 "ressemble la transition. Tout se vérifie sur les images. Le son n'est pas mesuré : demande-le au client.",
+    }
+    ecrire_json(dossier / "style.json", style)
+    return style
+
+
+def couleurs_image(image: str, zone) -> int:
+    ffmpeg = binaire("ffmpegPath", "ffmpeg")
+    chemin = pathlib.Path(image).expanduser()
+    if not ffmpeg or not chemin.exists():
+        arret(f"Image ou ffmpeg introuvable : {image}")
+    bandes = {"haut": (0.0, 0.35), "milieu": (0.3, 0.7), "bas": (0.6, 1.0), None: None}
+    px = pixels(ffmpeg, chemin, 96, bandes[zone])
+    if not px:
+        arret("Je n'arrive pas à lire cette image.")
+    comptes = {}
+    for r, g, b in px:
+        cle = (r // 16 * 16 + 8, g // 16 * 16 + 8, b // 16 * 16 + 8)
+        comptes[cle] = comptes.get(cle, 0) + 1
+    dire(f"Couleurs les plus présentes ({chemin.name}{', zone ' + zone if zone else ''}) :")
+    familles = classer_couleurs(px)
+    for (r, g, b), n in sorted(comptes.items(), key=lambda x: -x[1])[:8]:
+        dire(f"  #{min(r, 255):02X}{min(g, 255):02X}{min(b, 255):02X}  {100 * n / len(px):5.1f} %")
+    vives = {k[5:]: v for k, v in familles.items() if k.startswith("vive-") and v["part"] >= 0.003}
+    if vives:
+        dire("Couleurs vives : " + ", ".join(f"{k} {v['hex']} ({100 * v['part']:.1f} %)"
+                                             for k, v in sorted(vives.items(), key=lambda x: -x[1]["part"])))
+    return 0
 
 
 # ------------------------------------------------------------------ test anti-copie
@@ -852,9 +1097,11 @@ def comparer(cible_txt: str, taille: int = 6) -> int:
 
 
 # ------------------------------------------------------------------ le clonage
-def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
+def cloner(source: str, largeur, langue, refaire: bool, style: bool = False) -> None:
     debut = time.time()
     telecharge = False
+    # Le style se lit dans les détails (police, contour, surlignage) : images plus grandes par défaut.
+    largeur = largeur or (768 if style else 512)
     ffmpeg = binaire("ffmpegPath", "ffmpeg")
     if not ffmpeg:
         arret("ffmpeg est introuvable : c'est un outil de Monteur IA, relance son installation.")
@@ -942,6 +1189,17 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
         shots = analyser_plans(dossier, ffmpeg, largeur, media)
         dire(f"  ok ({time.time() - t0:.1f} s)")
 
+    style_d = None
+    if style:
+        t0 = time.time()
+        style_d = lire_json(dossier / "style.json")
+        if (refait or style_d is None or style_d.get("largeurImages") != largeur
+                or not (dossier / "rafales").exists()):
+            dire("• style de montage (rythme, couleurs, rafales d'images)…")
+            refait = True
+            style_d = analyser_style(dossier, ffmpeg, media, transcript, shots)
+            dire(f"  ok ({time.time() - t0:.1f} s)")
+
     meta.update({"duree": media["duree"], "largeur": media["largeur"], "hauteur": media["hauteur"],
                  "fps": media["fps"], "dossier": str(dossier)})
     meta.setdefault("clonéLe", datetime.datetime.now().isoformat(timespec="seconds"))
@@ -966,6 +1224,11 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
              "dans planches/)")
     else:
         dire(f"   à lire : {len(lec['uneParUne'])} images dans frames/ ({largeur} px)")
+    if style_d:
+        dire(f"   style : {style_d['rythme']['lecture']}")
+        vives = ", ".join(f"{c['famille']} {c['hex']}" for c in style_d["couleurs"]["vivesRecurrentes"])
+        dire(f"   couleurs : {style_d['couleurs']['allure']}" + (f" ; vives qui reviennent : {vives}" if vives else ""))
+        dire(f"   rafales à lire (dans rafales/) : {len(style_d['rafales'])}")
     premiere = transcript["phrases"][0]["texte"] if transcript.get("phrases") else None
     if premiere:
         dire(f"   première phrase : « {premiere[:140]} »")
@@ -974,15 +1237,25 @@ def cloner(source: str, largeur: int, langue, refaire: bool) -> None:
     else:
         dire("   dossier déjà prêt, rien à refaire")
     dire("")
-    dire("Étape suivante (pour l'IA) : lis transcript.json, les images du début une par une, puis chaque planche ; "
-         "ensuite, suis le skill reel-cloneur.")
+    if style_d:
+        dire("Étape suivante (pour l'IA) : lis style.json, les images du début une par une, chaque planche et chaque "
+             "rafale ; ensuite, suis le mode style du skill reel-cloneur.")
+    else:
+        dire("Étape suivante (pour l'IA) : lis transcript.json, les images du début une par une, puis chaque planche ; "
+             "ensuite, suis le skill reel-cloneur.")
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Reel Cloneur : prépare l'analyse d'un Reel (lien ou fichier).")
-    p.add_argument("source", help="lien du Reel / TikTok / Short, chemin d'un fichier vidéo, ou « installer » / « verifier »")
-    p.add_argument("dossier", nargs="?", help="avec « comparer » : le dossier clones/<…> à vérifier")
-    p.add_argument("--largeur", type=int, default=512, choices=[512, 768], help="largeur des images (512 par défaut)")
+    p.add_argument("source", help="lien du Reel / TikTok / Short, chemin d'un fichier vidéo, ou « installer » / "
+                   "« verifier » / « comparer » / « couleurs »")
+    p.add_argument("dossier", nargs="?", help="avec « comparer » : le dossier clones/<…> à vérifier ; "
+                   "avec « couleurs » : l'image")
+    p.add_argument("--style", action="store_true",
+                   help="prépare aussi le style de montage (rythme, couleurs, rafales d'images) : style.json")
+    p.add_argument("--zone", choices=["haut", "milieu", "bas"], help="avec « couleurs » : une bande de l'image")
+    p.add_argument("--largeur", type=int, default=None, choices=[512, 768],
+                   help="largeur des images (512 par défaut, 768 avec --style)")
     p.add_argument("--langue", help="force la langue parlée (fr, en, es…) ; sinon détectée")
     p.add_argument("--refaire", action="store_true", help="refait tout, même ce qui est déjà prêt")
     a = p.parse_args()
@@ -994,8 +1267,12 @@ def main() -> None:
         if not a.dossier:
             arret(f"Usage : {PY} tools/cloner_reel.py comparer clones/<dossier>")
         sys.exit(comparer(a.dossier))
+    elif a.source == "couleurs":
+        if not a.dossier:
+            arret(f"Usage : {PY} tools/cloner_reel.py couleurs clones/<dossier>/frames/<image>.jpg [--zone bas]")
+        sys.exit(couleurs_image(a.dossier, a.zone))
     else:
-        cloner(a.source, a.largeur, a.langue, a.refaire)
+        cloner(a.source, a.largeur, a.langue, a.refaire, a.style)
 
 
 if __name__ == "__main__":

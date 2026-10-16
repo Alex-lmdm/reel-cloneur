@@ -22,9 +22,17 @@ adaptées.
 - **claude-video**, © 2026 Bradley Bonanno : la chaîne lien → images → transcription lue par l'IA.
 - **viral-video-decomposer**, © 2026 sharon-laicc : l'idée du plan de tournage à trous et du
   contrat de sortie (champs de mécanique virale, objet « plan »).
-- **video-agent-skill**, © 2026 Melvyn Malherbe : les formules d'accroche et la règle des 3
-  accroches par script.
+- **video-agent-skills**, © 2026 Melvyn Malherbe : les formules d'accroche et la règle des 3
+  accroches par script ; pour le style de montage (son skill `steal`), la fiche par dimensions où
+  chaque valeur vient d'une observation, la section « laissé de côté », et la règle de ne jamais
+  dépasser l'original (zooms, effets, taille du visage).
 - **social-skills**, © 2026 Scrollmark, Inc. : l'anatomie du hook et l'autopsie de contenu.
+- **open-edits** (github.com/kevinbadi/open-edits) : pour le style de montage, remesurer la vidéo
+  montée avec le même outil que la référence, pour retrouver une règle oubliée.
+- **ghost-editor** (github.com/kurbaitaev/ghost-editor) : « un style est un système » (des règles,
+  pas des moments), et les valeurs relevées séparées des valeurs estimées.
+- **marketingskills** (github.com/coreyhaines31/marketingskills, skill `video`) : noter des règles
+  plutôt que des instances, et les 3 à 5 gestes signature d'un montage.
 
 Texte de la licence MIT, qui s'applique à ces projets :
 

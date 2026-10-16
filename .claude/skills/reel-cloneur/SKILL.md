@@ -1,20 +1,31 @@
 ---
 name: reel-cloneur
 description: >-
-  Reel Cloneur™ : décortique un Reel Instagram, un TikTok ou un YouTube Short qui a explosé (lien
-  collé ou fichier glissé) et en tire le script personnalisé du client, sur la même mécanique, dans
-  sa voix. Use when the user pastes a Reel / TikTok / Short link or drops a video and says « clone ce
-  Reel », « analyse ce Reel », « pourquoi ça a marché », « fais-moi la même chose », « clona este
-  Reel ». Sortie : clones/<date>-<slug>/analyse.md (script mot pour mot + analyse), une seule question
-  (« tu veux faire quoi ? »), les passages à personnaliser avec une proposition pour chacun, puis
-  script.md (3 accroches, corps calqué, appel à l'action du client, choix de montage). On reprend la
-  mécanique et les faits (l'outil présenté peut être le même), jamais les phrases ni le vécu de l'auteur.
+  Reel Cloneur™ : décortique un Reel Instagram, un TikTok ou un YouTube Short (lien collé ou fichier
+  glissé) et clone, au choix, son SCRIPT (le script personnalisé du client, même mécanique, dans sa
+  voix) ou son STYLE DE MONTAGE (rythme, cadrage, zooms, sous-titres, animations, transitions,
+  couleurs, sons : une fiche appliquée à ses prochaines vidéos), ou les deux. Use when the user pastes
+  a Reel / TikTok / Short link or drops a video and says « clone ce Reel », « clone son style de
+  montage », « clone mon style », « monte comme cette vidéo », « analyse ce Reel », « pourquoi ça a
+  marché », « fais-moi la même chose », « garde le style cloné », « clona este Reel ». Sortie :
+  clones/<date>-<slug>/ ; script : analyse.md puis script.md (3 accroches, corps calqué, appel à
+  l'action, choix de montage) ; style : style.md, enregistré dans ses réglages s'il le garde. On
+  reprend la mécanique, les faits et la manière de monter, jamais les phrases, le vécu ni la
+  signature de l'auteur.
 ---
 
-# Reel Cloneur™ : cloner la mécanique d'un Reel qui a marché
+# Reel Cloneur™ : cloner le script ou le style d'un Reel
 
 Le client colle un lien (Reel Instagram, TikTok, YouTube Short) ou glisse un fichier vidéo et dit
-« clone ce Reel ». Tu fais tout, dans cet ordre, sans questionnaire préalable :
+« clone ce Reel ». Deux choses se clonent : **le script** (ce qui est dit, l'angle, la structure)
+et **le style de montage** (comment la vidéo est montée). Tu commences par lui demander laquelle
+(§0), puis :
+
+- **Script** : la suite de ce fichier, §1 à §6.
+- **Style de montage** : **`references/mode-style.md`**, qui s'appuie sur le §1 pour préparer.
+- **Les deux** : `references/mode-style.md`, §5.
+
+Le mode script, dans cet ordre, sans autre question préalable :
 
 1. **Préparer** : l'outil télécharge, transcrit, découpe ; toi, tu lis la transcription, les images
    des 5 premières secondes une par une, puis les planches-contact du reste (§1).
@@ -26,8 +37,8 @@ Le client colle un lien (Reel Instagram, TikTok, YouTube Short) ou glisse un fic
    appel à l'action, dans sa voix, format prompteur, et les choix de montage (§5).
 
 **Première vidéo du client :** la règle « aucune question avant » de CLAUDE.md (section
-« Première vidéo ») concerne le montage. Elle ne s'applique pas à la question et aux passages à
-personnaliser du Reel Cloneur, qui se posent toujours.
+« Première vidéo ») concerne le montage. Elle ne s'applique pas aux questions du Reel Cloneur, qui
+se posent toujours.
 
 Le client n'est pas technique : tutoiement, phrases simples, zéro jargon (pas de « segment »,
 « timestamp », « pipeline », « JSON », « beat », « CTA », « hook » : dis « temps », « appel à
@@ -37,6 +48,8 @@ est en anglais. Les noms de fichiers et les commandes ne se traduisent pas.
 ## Les trois règles qui ne se discutent pas
 
 > **1. On reprend la mécanique et les faits ; les phrases et le vécu de l'auteur, on les réécrit.**
+> (Mode style : on reprend la manière de monter, jamais la signature de l'auteur ; voir
+> `references/mode-style.md`.)
 > - **Se reprend** : la forme de l'accroche, la structure, le rythme, le type de preuve, la place de
 >   l'appel à l'action ; et **les faits** : le nom de l'outil, du site, de l'appli ou de la méthode
 >   présentés, et ce qu'ils font. C'est une information, pas une phrase d'auteur : des centaines de
@@ -63,6 +76,23 @@ est en anglais. Les noms de fichiers et les commandes ne se traduisent pas.
 
 ---
 
+## 0. « Je clone quoi ? »
+
+Avant de lancer l'outil, une seule question, en une ligne, sauf s'il a déjà dit ce qu'il veut :
+
+> « Je clone quoi : **le script** (ce qu'il dit, son angle, sa structure, pour écrire le tien), **le
+> style de montage** (coupes, cadrage, sous-titres, animations, couleurs, pour monter tes vidéos
+> comme ça), ou **les deux** ? »
+
+- « clone ce Reel », « analyse ce Reel », « pourquoi ça a marché », un lien seul : pose-la.
+- « clone le script », « fais-moi la même chose », « écris-moi la même » : script, sans question.
+- « clone son style », « son montage », « monte comme ça », « clone mon style », « c'est ma
+  vidéo, reprends mon montage », « clone le style de ces vidéos » : style, sans question.
+- Il hésite : explique en une phrase que le script sert à écrire sa prochaine vidéo et le style à
+  la monter, et que les deux se cumulent.
+
+---
+
 ## 1. Préparer (l'outil fait le mécanique)
 
 Depuis le dossier Monteur IA (dans l'accueil de l'app HyperFrames : `../tools/…`) :
@@ -70,6 +100,8 @@ Depuis le dossier Monteur IA (dans l'accueil de l'app HyperFrames : `../tools/�
 ```bash
 python3 tools/cloner_reel.py "<lien collé ou chemin du fichier glissé>"
 ```
+
+(Style ou les deux : ajoute `--style`, voir `references/mode-style.md`.)
 
 Windows : `python` au lieu de `python3`. Compte 15 à 60 secondes. Annonce-le en une ligne
 (« Je télécharge et je décortique le Reel, ça prend moins d'une minute. »).
@@ -280,8 +312,8 @@ est lu par lui) :
   défaut et les préférences du client ; la première vidéo du client se monte toujours avec les
   réglages de base ;
 - **texte à l'écran** : ce que l'original affiche et quand ; chez Monteur IA, l'équivalent est
-  porté par les sous-titres et le motion design (le skill `motion-design` interdit les gros titres
-  plein écran : propose l'équivalent visuel, sauf si les préférences du client disent autre chose) ;
+  porté par les sous-titres et le motion design (Monteur IA évite par défaut les gros titres plein
+  écran : propose l'équivalent visuel, ou les gros titres de l'original si le client les veut) ;
 - **à filmer en plus** : ce que le client doit capturer (écran, objet, résultat) ;
 - **son** : « musique et bruitages à vérifier à l'oreille » (avec le son déclaré par la plateforme
   s'il y en a un) : tu n'entends pas la vidéo, n'invente rien.
@@ -304,7 +336,8 @@ Le modèle exact est dans **`references/modele-script.md`**. L'ordre :
 > celle-ci" : je reprendrai les choix de montage de ce Reel. »
 
 S'il veut le tourner tout de suite, crée le Reel avec son brief :
-`python3 tools/nouveau_reel.py "<sujet en 2 à 4 mots>" --brief "Script et choix de montage : clones/<dossier>/script.md (Reel Cloneur)"`
+`python3 tools/nouveau_reel.py "<sujet en 2 à 4 mots>" --brief "Script et choix de montage : ../../clones/<dossier>/script.md (Reel Cloneur)"`
+(chemin vu depuis le Reel, deux dossiers sous le dossier Monteur IA)
 (ajoute `--ouvrir` s'il travaille dans l'app HyperFrames). Le montage de ce Reel lira `script.md`
 et appliquera la liste « À reproduire au montage ».
 
@@ -321,6 +354,7 @@ et appliquera la liste « À reproduire au montage ».
 - **Photo / carrousel** au lieu d'une vidéo : dis-le, ce n'est pas un Reel ; propose d'envoyer
   la vidéo.
 - **Le client clone son propre Reel** : la règle n°1 tombe pour ses propres phrases et son vécu
-  (c'est son texte), garde-la pour tout le reste.
+  (c'est son texte), garde-la pour tout le reste. En mode style, tout est à lui : c'est le cas le
+  plus utile (son style, appliqué à toutes ses vidéos).
 - **Il veut une version espagnole ou anglaise** : le script se rédige dans la langue de tournage
   demandée ; l'analyse reste dans sa langue de conversation.

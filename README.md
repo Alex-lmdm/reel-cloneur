@@ -1,9 +1,19 @@
-# Reel Cloneur™ : clone la mécanique des Reels qui explosent
+# Reel Cloneur™ : clone le script ou le style de montage des Reels qui explosent
 
 Extension du système **Monteur IA**, offerte à tous ses clients.
 
-Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Tu colles son lien, tu dis
-« clone ce Reel ». Ton monteur IA le regarde pour toi, image par image, et te rend :
+Tu colles le lien d'un Reel (ou tu glisses la vidéo) et tu dis « clone ce Reel ». Ton monteur IA te
+demande ce que tu veux cloner :
+
+- **le script** : ce qui est dit, l'angle, la structure, pour écrire ta version ;
+- **le style de montage** : le rythme des coupes, le cadrage et les zooms, les sous-titres, les
+  animations, les transitions, les couleurs, pour monter tes prochaines vidéos comme ça ;
+- **ou les deux.**
+
+## Cloner le script
+
+Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Ton monteur IA le regarde
+pour toi, image par image, et te rend :
 
 1. **Le script mot pour mot**, seconde par seconde, avec le texte affiché à l'écran (et traduit
    s'il est dans une autre langue).
@@ -19,12 +29,30 @@ Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Tu col
    même structure, ton appel à l'action, dans ta voix, prêt à lire au prompteur. Plus la liste des
    choix de montage à reproduire, que ton monteur appliquera.
 
-Marche avec les **Reels Instagram**, les **TikTok** et les **YouTube Shorts**. Tout tourne sur ton
-ordinateur : pas de compte à créer, pas de clé, pas d'abonnement en plus.
-
 > **La règle : on reprend la mécanique, jamais les phrases.** Une structure qui marche n'appartient
 > à personne, un outil gratuit non plus : tu peux présenter le même. Les mots, les chiffres et les
 > histoires d'un créateur, eux, sont à lui. Ton script est le tien.
+
+## Cloner le style de montage
+
+Le cas le plus utile : **ton propre style.** Tu montes tes vidéos depuis des années, à ta façon.
+Colle une ou plusieurs de tes vidéos (cinq au plus) : ton monteur relève tout ce qui fait ton style
+(rythme, cadrage, zooms, police et allure des sous-titres, animations, transitions, couleurs), te
+montre la liste, et l'enregistre dans tes réglages. Toutes tes prochaines vidéos sortent dans ce
+style.
+
+Tu peux aussi partir de la vidéo d'un autre créateur dont tu aimes le montage, ou essayer un
+tout autre style le temps d'une vidéo : par défaut, un style cloné s'applique à une vidéo, sans
+toucher à tes réglages. Une fois la vidéo validée, ton monteur te demande si tu le gardes pour les
+suivantes. Sous-titres mot par mot, mot prononcé surligné, en escalier, transitions marquées : ce
+que Monteur IA ne fait pas d'office, il le fabrique pour toi. Il n'entend pas la vidéo : il te
+demande s'il y a une musique ou des bruitages.
+
+> **La règle : on reprend la manière de monter, jamais la signature de l'auteur.** Un rythme, une
+> allure de sous-titres, une palette, ça se reprend. Son logo, son nom, sa musique, ses images, non.
+
+Marche avec les **Reels Instagram**, les **TikTok** et les **YouTube Shorts**. Tout tourne sur ton
+ordinateur : pas de compte à créer, pas de clé, pas d'abonnement en plus.
 
 ---
 
@@ -78,14 +106,23 @@ Une seule phrase :
 
 > **« Clone ce Reel »** + le lien (ou la vidéo glissée dans la conversation).
 
+Il te demande alors : le script, le style de montage, ou les deux ? Tu peux aussi le dire tout de
+suite : « clone le style de montage de cette vidéo », « clone mon style ».
+
 Tout ce que ton monteur prépare est rangé dans le dossier `clones/` de ton dossier Monteur IA, un
-dossier par Reel cloné. Dedans, deux fichiers à ouvrir : `analyse.md` (le script d'origine et
-pourquoi il a marché) et `script.md` (ton script à tourner).
+dossier par Reel cloné. Dedans, les fichiers à ouvrir : `analyse.md` (le script d'origine et
+pourquoi il a marché), `script.md` (ton script à tourner) et `style.md` (la fiche du style de
+montage).
 
 Quand tu as tourné ta version : glisse ta vidéo et dis « on monte celle-ci ». Ton monteur part des
 choix de montage du Reel cloné, en gardant ton style.
 
 ## FAQ
+
+**Je peux cloner mon propre style ?**
+Oui, c'est même le meilleur usage : colle une de tes vidéos déjà montées, dis « clone mon style »,
+et tes prochaines vidéos sortent comme elle. Tu peux toujours dire à ton monteur de changer un
+point ensuite.
 
 **C'est du plagiat ?**
 Non, et c'est fait exprès. Le Reel Cloneur™ reprend ce qui ne s'invente pas deux fois : une forme

@@ -93,9 +93,10 @@ corrective), puis retente.
 6. PREMIÈRE INSTALLATION : affiche un TABLEAU récapitulatif ✅ / ❌ (dossier Monteur IA, skill
    copié, outil copié, dossier clones/ et .gitignore, aiguillage, téléchargeur yt-dlp, sync,
    smoke test). Si tout est ✅, conclus par : « Reel Cloneur™ est installé. Colle-moi le lien
-   d'un Reel, d'un TikTok ou d'un YouTube Short qui a explosé (ou glisse la vidéo ici) et dis
-   "clone ce Reel". Si je ne réagis pas, ouvre une nouvelle conversation dans ton dossier
-   Monteur IA et redis-le. »
+   d'un Reel, d'un TikTok ou d'un YouTube Short (ou glisse la vidéo ici) et dis "clone ce
+   Reel" : je clone son script, son style de montage, ou les deux. Ta propre vidéo marche aussi,
+   pour que je reprenne ton style. Si je ne réagis pas, ouvre une nouvelle conversation dans ton
+   dossier Monteur IA et redis-le. »
    MISE À JOUR (l'extension était déjà là) : pas de tableau. Une seule ligne : « Reel Cloneur™
    est à jour, tout est ✅. Colle-moi un lien et dis "clone ce Reel". » Le tableau ne s'affiche
    que si une étape a échoué.
