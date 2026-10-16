@@ -1,150 +1,28 @@
-# Reel Cloneur™ : clone le script ou le style de montage des Reels qui explosent
+# Reel Cloneur™ fait maintenant partie de Monteur IA
 
-Extension du système **Monteur IA**, offerte à tous ses clients.
+Depuis le 16 octobre 2026, **Reel Cloneur™ est inclus dans [Monteur IA](https://github.com/Alex-lmdm/monteur-ia)**,
+comme le mode YouTube. Il n'y a plus rien à installer à part : il se met à jour avec ton monteur.
 
-Tu colles le lien d'un Reel (ou tu glisses la vidéo) et tu dis « clone ce Reel ». Ton monteur IA te
-demande ce que tu veux cloner :
+## Tu l'avais installé comme extension ?
 
-- **le script** : ce qui est dit, l'angle, la structure, pour écrire ta version ;
-- **le style de montage** : le rythme des coupes, le cadrage et les zooms, les sous-titres, les
-  animations, les transitions, les couleurs, pour monter tes prochaines vidéos comme ça ;
-- **ou les deux.**
+Mets simplement Monteur IA à jour. Ouvre ton dossier Monteur IA dans Claude Code ou Codex et colle :
 
-## Cloner le script
+```text
+Mets Monteur IA à jour : suis https://github.com/Alex-lmdm/monteur-ia/blob/main/MISE-A-JOUR.md
+```
 
-Tu vois passer un Reel qui a fait un carton dans ta niche (ou à côté). Ton monteur IA le regarde
-pour toi, image par image, et te rend :
+Ton IA remplace l'ancienne extension par la version incluse dans Monteur IA. Tes clones (dossier
+`clones/`), tes réglages et tes vidéos sont gardés.
 
-1. **Le script mot pour mot**, seconde par seconde, avec le texte affiché à l'écran (et traduit
-   s'il est dans une autre langue).
-2. **Pourquoi ça a marché**, en clair : l'accroche dite et l'accroche visuelle, le déroulé,
-   le rythme des coupes, la preuve, l'appel à l'action.
-3. **Une seule question : « Maintenant, tu veux faire quoi ? »** Refaire la même chose dans ta
-   langue (présenter le même outil, le même site, le même conseil à ton public), la même mécanique
-   sur ton sujet à toi, ou autre chose. Tu réponds en une ligne.
-4. **Ce qui est à personnaliser** pour que ce soit ton Reel et pas une copie : son test perso, ses
-   chiffres, son exemple, son mot-clé. Pour chacun, il te propose quoi mettre à la place ; tu
-   réponds en une fois, ou « ok ».
-5. **Ton script à tourner** : 3 accroches au choix sur la même mécanique, le corps calqué sur la
-   même structure, ton appel à l'action, dans ta voix, prêt à lire au prompteur. Plus la liste des
-   choix de montage à reproduire, que ton monteur appliquera.
+## Tu ne l'as jamais installé ?
 
-> **La règle : on reprend la mécanique, jamais les phrases.** Une structure qui marche n'appartient
-> à personne, un outil gratuit non plus : tu peux présenter le même. Les mots, les chiffres et les
-> histoires d'un créateur, eux, sont à lui. Ton script est le tien.
+Même phrase : la mise à jour de Monteur IA te l'apporte. Ensuite, colle le lien d'un Reel, d'un
+TikTok ou d'un YouTube Short (ou glisse la vidéo, la tienne aussi) et dis **« clone ce Reel »** : ton
+monteur clone son script, son style de montage, ou les deux.
 
-## Cloner le style de montage
-
-Le cas le plus utile : **ton propre style.** Tu montes tes vidéos depuis des années, à ta façon.
-Colle une ou plusieurs de tes vidéos (cinq au plus) : ton monteur relève tout ce qui fait ton style
-(rythme, cadrage, zooms, police et allure des sous-titres, animations, transitions, couleurs), te
-montre la liste, et l'enregistre dans tes réglages. Toutes tes prochaines vidéos sortent dans ce
-style.
-
-Tu peux aussi partir de la vidéo d'un autre créateur dont tu aimes le montage, ou essayer un
-tout autre style le temps d'une vidéo : par défaut, un style cloné s'applique à une vidéo, sans
-toucher à tes réglages. Une fois la vidéo validée, ton monteur te demande si tu le gardes pour les
-suivantes. Sous-titres mot par mot, mot prononcé surligné, en escalier, transitions marquées : ce
-que Monteur IA ne fait pas d'office, il le fabrique pour toi. Il n'entend pas la vidéo : il te
-demande s'il y a une musique ou des bruitages.
-
-> **La règle : on reprend la manière de monter, jamais la signature de l'auteur.** Un rythme, une
-> allure de sous-titres, une palette, ça se reprend. Son logo, son nom, sa musique, ses images, non.
-
-Marche avec les **Reels Instagram**, les **TikTok** et les **YouTube Shorts**. Tout tourne sur ton
-ordinateur : pas de compte à créer, pas de clé, pas d'abonnement en plus.
+Le mode d'emploi complet est dans ta formation Monteur IA, module « Reel Cloneur™ ».
 
 ---
 
-## Un exemple
-
-Tu colles : `https://www.instagram.com/…/reel/…` et tu dis « clone ce Reel ».
-
-Ton monteur télécharge la vidéo, la regarde image par image, puis te montre le script d'origine
-et son analyse. Par exemple, sur un Reel de @lemondedumarketing :
-
-> **L'accroche dite** : « Ce site gratuit transforme n'importe quelle IA vidéo en vrai studio de
-> cinéma… » C'est un *bénéfice immédiat* : gratuit, et un résultat spectaculaire.
-> **L'accroche visuelle** : une mosaïque de plans de films qui défile au-dessus du visage.
-> **La structure** : la promesse (0-3 s) → le nom du site et le nombre de techniques (3-12 s) → ce
-> qu'on y trouve (12-23 s) → « je l'ai testé », avec la démo (23-29 s) → l'astuce à retenir
-> (29-34 s) → commente un mot pour recevoir le site (34-38 s).
-
-Puis il te demande ce que tu veux en faire. Par exemple, sur un Reel américain qui présente un
-outil gratuit : « a) la même chose en français, en présentant le même outil ; b) la même mécanique
-sur ton sujet ; c) autre chose. » Tu réponds « a, avec mon mot-clé VIRAL ». Il te montre alors ce
-qui appartient à l'auteur et ce qu'il propose à la place : « Là, il raconte son test sur 7 accroches.
-Tu as un essai à toi, ou je tourne la phrase comme une promesse, sans chiffre ? » Tu réponds « ok »,
-il t'écrit ton script et la liste des choix de montage.
-
-Compte environ 6 minutes en tout, du lien collé au script prêt à lire (mesuré sur nos tests :
-une minute pour l'installation la première fois, puis 5 à 6 minutes par Reel).
-
-Quatre exemples complets faits pendant nos tests (deux Reels Instagram, un TikTok, un YouTube Short)
-sont dans le dossier [`exemples/`](exemples/).
-
----
-
-## Ce qu'il te faut
-
-- **Monteur IA installé et fonctionnel** (sinon, c'est son INSTALL.md d'abord) ;
-- une connexion internet pour télécharger les vidéos ;
-- rien d'autre : l'installation ajoute toute seule le petit outil qui télécharge les vidéos.
-
-## Installation : une à deux minutes
-
-Ouvre **Claude Code** (ou **Codex**) **dans ton dossier Monteur IA** et colle :
-
-> Télécharge l'extension https://github.com/Alex-lmdm/reel-cloneur et suis les instructions
-> d'installation de son INSTALL.md.
-
-Le détail est dans **[INSTALL.md](INSTALL.md)**.
-
-## Comment on s'en sert
-
-Une seule phrase :
-
-> **« Clone ce Reel »** + le lien (ou la vidéo glissée dans la conversation).
-
-Il te demande alors : le script, le style de montage, ou les deux ? Tu peux aussi le dire tout de
-suite : « clone le style de montage de cette vidéo », « clone mon style ».
-
-Tout ce que ton monteur prépare est rangé dans le dossier `clones/` de ton dossier Monteur IA, un
-dossier par Reel cloné. Dedans, les fichiers à ouvrir : `analyse.md` (le script d'origine et
-pourquoi il a marché), `script.md` (ton script à tourner) et `style.md` (la fiche du style de
-montage).
-
-Quand tu as tourné ta version : glisse ta vidéo et dis « on monte celle-ci ». Ton monteur part des
-choix de montage du Reel cloné, en gardant ton style.
-
-## FAQ
-
-**Je peux cloner mon propre style ?**
-Oui, c'est même le meilleur usage : colle une de tes vidéos déjà montées, dis « clone mon style »,
-et tes prochaines vidéos sortent comme elle. Tu peux toujours dire à ton monteur de changer un
-point ensuite.
-
-**C'est du plagiat ?**
-Non, et c'est fait exprès. Le Reel Cloneur™ reprend ce qui ne s'invente pas deux fois : une forme
-d'accroche, un ordre, un rythme, la place de l'appel à l'action, et l'outil présenté si tu veux le
-présenter toi aussi. Il ne reprend jamais les phrases, les chiffres ni les histoires de l'auteur :
-il te propose quoi mettre à la place, et n'invente jamais un chiffre ou un test pour toi.
-
-**Il faut que je donne mon compte Instagram ?**
-Non, jamais. Les vidéos publiques se téléchargent sans connexion. Si une vidéo refuse (privée, ou
-Instagram qui bloque ce jour-là), enregistre-la sur ton ordinateur et glisse le fichier dans la
-conversation : le résultat est le même. Le plus simple : un enregistrement d'écran de ton
-téléphone pendant que le Reel passe.
-
-**Et si le Reel est en anglais ?**
-Aucun problème : ton monteur le transcrit en anglais, te le traduit, et écrit ton script dans ta
-langue.
-
-**Ça marche sur Windows ?**
-Oui, c'est prévu. Les tests de lancement ont été faits sur Mac ; si quelque chose coince sur ton PC,
-ton monteur te dira quoi faire.
-
-**Je dois vérifier les chiffres ?**
-Oui, toujours. Ton monteur décrit et explique, il ne connaît pas les statistiques privées de
-l'auteur (Instagram n'affiche même pas les vues de tous les Reels). Et il n'invente jamais un
-chiffre pour toi.
+Les quatre clonages faits pendant les tests du 10 octobre 2026 restent dans [`exemples/`](exemples/).
+Le code de l'ancienne extension reste dans l'historique de ce dépôt.
